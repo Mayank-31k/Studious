@@ -1,0 +1,380 @@
+/* Google Fonts Import - must be at the very top */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+/* ============================================
+   STUDIOUS - Minecraft-Style Theme
+   Professional Green & Yellow Color Palette
+   ============================================ */
+
+:root {
+  /* Primary Colors - Minecraft Green */
+  --primary: #2D5A27;
+  --primary-light: #4A8C3F;
+  --primary-dark: #1E3D1A;
+  --primary-glow: rgba(74, 140, 63, 0.4);
+
+  /* Secondary Colors - Golden Yellow */
+  --secondary: #E8B923;
+  --secondary-light: #FFD54F;
+  --secondary-dark: #C49A1A;
+  --secondary-glow: rgba(232, 185, 35, 0.4);
+
+  /* Background & Surface */
+  --background: #0F1210;
+  --background-alt: #0A0D0B;
+  --surface: #1A1F1C;
+  --surface-hover: #232A26;
+  --surface-active: #2B3430;
+
+  /* Borders */
+  --border: #2E3830;
+  --border-light: #3D4A42;
+  --border-glow: rgba(74, 140, 63, 0.3);
+
+  /* Text Colors */
+  --text: #E8F5E9;
+  --text-secondary: #B8C9BA;
+  --text-muted: #8BA889;
+  --text-inverse: #0F1210;
+
+  /* Status Colors */
+  --success: #4CAF50;
+  --warning: #FFC107;
+  --error: #EF5350;
+  --info: #29B6F6;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 20px var(--primary-glow);
+  --shadow-glow-yellow: 0 0 20px var(--secondary-glow);
+
+  /* Minecraft Pixel Border */
+  --pixel-border: 4px;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 400ms ease;
+
+  /* Fonts */
+  --font-pixel: 'Press Start 2P', monospace;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--text);
+  --color-primary: var(--primary);
+  --color-primary-light: var(--primary-light);
+  --color-secondary: var(--secondary);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --font-sans: var(--font-sans);
+  --font-pixel: var(--font-pixel);
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--text);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-pixel);
+  color: var(--text);
+  line-height: 1.4;
+  letter-spacing: 0.5px;
+}
+
+h1 {
+  font-size: 1.75rem;
+  text-shadow: 3px 3px 0 var(--primary-dark);
+}
+
+h2 {
+  font-size: 1.25rem;
+  text-shadow: 2px 2px 0 var(--primary-dark);
+}
+
+h3 {
+  font-size: 1rem;
+}
+
+h4,
+h5,
+h6 {
+  font-size: 0.875rem;
+}
+
+p {
+  font-family: var(--font-sans);
+  color: var(--text-secondary);
+}
+
+a {
+  color: var(--secondary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--secondary-light);
+  text-decoration: underline;
+}
+
+/* ============================================
+   PIXEL BORDER UTILITY
+   ============================================ */
+
+.pixel-border {
+  position: relative;
+  background: var(--surface);
+  border: var(--pixel-border) solid var(--border);
+  box-shadow:
+    inset -4px -4px 0 rgba(0, 0, 0, 0.3),
+    inset 4px 4px 0 rgba(255, 255, 255, 0.05),
+    var(--shadow-md);
+}
+
+.pixel-border-primary {
+  border-color: var(--primary);
+  box-shadow:
+    inset -4px -4px 0 var(--primary-dark),
+    inset 4px 4px 0 var(--primary-light),
+    var(--shadow-glow);
+}
+
+.pixel-border-secondary {
+  border-color: var(--secondary);
+  box-shadow:
+    inset -4px -4px 0 var(--secondary-dark),
+    inset 4px 4px 0 var(--secondary-light),
+    var(--shadow-glow-yellow);
+}
+
+/* ============================================
+   CUSTOM SCROLLBAR
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background-alt);
+  border-left: 2px solid var(--border);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border: 2px solid var(--primary-dark);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-light);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--background-alt);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 5px var(--primary-glow);
+  }
+
+  50% {
+    box-shadow: 0 0 20px var(--primary-glow), 0 0 40px var(--primary-glow);
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pixel-flash {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.4s ease-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+.font-pixel {
+  font-family: var(--font-pixel);
+}
+
+.font-sans {
+  font-family: var(--font-sans);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(45, 90, 39, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(45, 90, 39, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.glass {
+  background: rgba(26, 31, 28, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+}
+
+/* ============================================
+   SELECTION
+   ============================================ */
+
+::selection {
+  background: var(--primary);
+  color: var(--text);
+}
+
+::-moz-selection {
+  background: var(--primary);
+  color: var(--text);
+}
+
+/* ============================================
+   FOCUS STATES
+   ============================================ */
+
+:focus-visible {
+  outline: 2px solid var(--secondary);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   FORM DEFAULTS
+   ============================================ */
+
+input,
+textarea,
+select {
+  font-family: var(--font-sans);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* ============================================
+   LOADING SKELETON
+   ============================================ */
+
+.skeleton {
+  background: linear-gradient(90deg,
+      var(--surface) 25%,
+      var(--surface-hover) 50%,
+      var(--surface) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
