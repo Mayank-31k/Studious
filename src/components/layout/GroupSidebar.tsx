@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Modal, ModalFooter } from '@/components/ui/modal';
 import { cn } from '@/lib/utils';
-import { PenSquare, LogOut, Home, Hash, ChevronDown, Plus, Search, MessageSquare, UserPlus, Loader2 } from 'lucide-react';
+import { PanelLeftClose, PanelLeft, LogOut, Home, Hash, ChevronDown, Plus, Search, UserPlus, Loader2 } from 'lucide-react';
 
 export function GroupSidebar() {
     const { groups, profile, signOut, refreshGroups, user } = useAuth();
@@ -18,6 +18,7 @@ export function GroupSidebar() {
     const router = useRouter();
     const [search, setSearch] = useState('');
     const [channelsExpanded, setChannelsExpanded] = useState(true);
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
     // Create workspace modal state
     const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -165,70 +166,93 @@ export function GroupSidebar() {
     };
 
     return (
-        <div className="flex flex-col h-full w-[280px]" style={{ backgroundColor: '#3F0E40' }}>
+        <div
+            className={cn(
+                "flex flex-col h-full transition-all duration-300 ease-in-out overflow-hidden",
+                isCollapsed ? "w-[68px]" : "w-[280px]"
+            )}
+            style={{ backgroundColor: '#3F0E40' }}
+        >
             {/* Workspace Header */}
             <div className="px-4 py-3 flex items-center justify-between border-b" style={{ borderColor: '#522653' }}>
-                <button
-                    className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-                    onClick={() => router.push('/dashboard')}
-                >
-                    <span className="text-lg font-bold text-white">Studious</span>
-                    <ChevronDown className="h-4 w-4 text-white/70" />
-                </button>
+                {!isCollapsed && (
+                    <button
+                        className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                        onClick={() => router.push('/dashboard')}
+                    >
+                        <span className="text-lg font-bold text-white">Studious</span>
+                        <ChevronDown className="h-4 w-4 text-white/70" />
+                    </button>
+                )}
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="h-9 w-9 rounded-full text-white/80 hover:text-white hover:bg-white/10"
+                    onClick={() => setIsCollapsed(!isCollapsed)}
+                    className={cn(
+                        "h-9 w-9 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-transform",
+                        isCollapsed && "mx-auto"
+                    )}
+                    title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                 >
-                    <PenSquare className="h-4 w-4" />
+                    {isCollapsed ? (
+                        <PanelLeft className="h-4 w-4" />
+                    ) : (
+                        <PanelLeftClose className="h-4 w-4" />
+                    )}
                 </Button>
             </div>
 
             {/* Search Bar */}
-            <div className="px-3 py-3">
-                <button
-                    className="w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors"
-                    style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                >
-                    <Search className="h-4 w-4 text-white/60" />
-                    <span className="text-white/60">Search Studious</span>
-                </button>
-            </div>
+            {!isCollapsed && (
+                <div className="px-3 py-3">
+                    <button
+                        className="w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors"
+                        style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                    >
+                        <Search className="h-4 w-4 text-white/60" />
+                        <span className="text-white/60">Search Studious</span>
+                    </button>
+                </div>
+            )}
 
             {/* Navigation Items */}
-            <div className="px-2 space-y-0.5">
+            <div className={cn("px-2 space-y-0.5", isCollapsed && "px-2")}>
                 <button
                     onClick={() => router.push('/dashboard')}
                     className={cn(
                         "w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
                         pathname === '/dashboard'
                             ? "bg-[#1164A3] text-white"
-                            : "text-white/80 hover:bg-white/10"
+                            : "text-white/80 hover:bg-white/10",
+                        isCollapsed && "justify-center px-0"
                     )}
+                    title="Home"
                 >
-                    <Home className="h-4 w-4" />
-                    <span>Home</span>
+                    <Home className="h-4 w-4 flex-shrink-0" />
+                    {!isCollapsed && <span>Home</span>}
                 </button>
 
             </div>
 
             {/* Channels Section */}
-            <div className="mt-4">
-                <button
-                    onClick={() => setChannelsExpanded(!channelsExpanded)}
-                    className="w-full flex items-center gap-1 px-4 py-1 text-sm font-medium text-white/70 hover:text-white transition-colors"
-                >
-                    <ChevronDown className={cn(
-                        "h-3 w-3 transition-transform",
-                        !channelsExpanded && "-rotate-90"
-                    )} />
-                    <span>Workspaces</span>
-                </button>
-            </div>
+            {!isCollapsed && (
+                <div className="mt-4">
+                    <button
+                        onClick={() => setChannelsExpanded(!channelsExpanded)}
+                        className="w-full flex items-center gap-1 px-4 py-1 text-sm font-medium text-white/70 hover:text-white transition-colors"
+                    >
+                        <ChevronDown className={cn(
+                            "h-3 w-3 transition-transform",
+                            !channelsExpanded && "-rotate-90"
+                        )} />
+                        <span>Workspaces</span>
+                    </button>
+                </div>
+            )}
 
             {/* Groups/Channels List */}
             <ScrollArea className="flex-1 px-2">
-                {channelsExpanded && (
+                {(channelsExpanded || isCollapsed) && (
                     <div className="py-1 space-y-0.5">
                         {filteredGroups.map(group => {
                             const isActive = pathname === `/groups/${group.id}`;
@@ -240,32 +264,40 @@ export function GroupSidebar() {
                                         "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors group",
                                         isActive
                                             ? "bg-[#1164A3] text-white"
-                                            : "text-white/80 hover:bg-white/10"
+                                            : "text-white/80 hover:bg-white/10",
+                                        isCollapsed && "justify-center px-0"
                                     )}
+                                    title={group.name}
                                 >
                                     <Hash className="h-4 w-4 flex-shrink-0" />
-                                    <span className="truncate font-medium">{group.name.toLowerCase().replace(/\s+/g, '-')}</span>
+                                    {!isCollapsed && (
+                                        <span className="truncate font-medium">{group.name.toLowerCase().replace(/\s+/g, '-')}</span>
+                                    )}
                                 </Link>
                             );
                         })}
 
                         {/* Add Channel Button */}
-                        <button
-                            onClick={() => setCreateModalOpen(true)}
-                            className="w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/10 transition-colors"
-                        >
-                            <Plus className="h-4 w-4" />
-                            <span>Add workspace</span>
-                        </button>
+                        {!isCollapsed && (
+                            <button
+                                onClick={() => setCreateModalOpen(true)}
+                                className="w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+                            >
+                                <Plus className="h-4 w-4" />
+                                <span>Add workspace</span>
+                            </button>
+                        )}
 
                         {/* Join Workspace Button */}
-                        <button
-                            onClick={() => setJoinModalOpen(true)}
-                            className="w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/10 transition-colors"
-                        >
-                            <UserPlus className="h-4 w-4" />
-                            <span>Join workspace</span>
-                        </button>
+                        {!isCollapsed && (
+                            <button
+                                onClick={() => setJoinModalOpen(true)}
+                                className="w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+                            >
+                                <UserPlus className="h-4 w-4" />
+                                <span>Join workspace</span>
+                            </button>
+                        )}
                     </div>
                 )}
             </ScrollArea>
@@ -274,7 +306,10 @@ export function GroupSidebar() {
             <div className="mt-auto border-t" style={{ borderColor: '#522653', backgroundColor: '#350D36' }}>
                 <div
                     onClick={() => router.push('/profile')}
-                    className="flex items-center gap-3 p-3 cursor-pointer group hover:bg-white/5 transition-colors"
+                    className={cn(
+                        "flex items-center gap-3 p-3 cursor-pointer group hover:bg-white/5 transition-colors",
+                        isCollapsed && "justify-center p-2"
+                    )}
                 >
                     <div className="relative">
                         <Avatar
@@ -285,24 +320,28 @@ export function GroupSidebar() {
                         {/* Online Status Indicator */}
                         <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2" style={{ borderColor: '#350D36' }}></span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white truncate">{profile?.full_name}</p>
-                        <p className="text-xs text-green-400 truncate flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span>
-                            Active
-                        </p>
-                    </div>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            signOut();
-                        }}
-                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-white/60 hover:text-white hover:bg-white/10"
-                    >
-                        <LogOut className="h-4 w-4" />
-                    </Button>
+                    {!isCollapsed && (
+                        <>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-white truncate">{profile?.full_name}</p>
+                                <p className="text-xs text-green-400 truncate flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+                                    Active
+                                </p>
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    signOut();
+                                }}
+                                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-white/60 hover:text-white hover:bg-white/10"
+                            >
+                                <LogOut className="h-4 w-4" />
+                            </Button>
+                        </>
+                    )}
                 </div>
             </div>
 
