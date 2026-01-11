@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Avatar } from '@/components/ui/avatar';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/contexts/ToastContext';
 import { Trash2, Upload, Shield, ShieldOff } from 'lucide-react';
 import type { Group, GroupMember, Profile } from '@/types/database.types';
 import { useRouter } from 'next/navigation';
@@ -24,7 +25,8 @@ interface MemberWithProfile extends GroupMember {
 }
 
 export function GroupSettingsDialog({ open, onOpenChange, group, onGroupUpdated, isAdmin = false }: GroupSettingsDialogProps) {
-    const { user } = useAuth();
+    const { user, refreshGroups } = useAuth();
+    const { showToast } = useToast();
     const router = useRouter();
     const supabase = createClient();
 
@@ -61,7 +63,8 @@ export function GroupSettingsDialog({ open, onOpenChange, group, onGroupUpdated,
         setUploading(true);
         try {
             const fileExt = file.name.split('.').pop();
-            const fileName = `${group.id}.${fileExt}`;
+            // Use timestamp in filename to bust cache
+            const fileName = `${group.id}_${Date.now()}.${fileExt}`;
             const filePath = `${fileName}`;
 
             const { error: uploadError } = await supabase.storage
@@ -74,16 +77,22 @@ export function GroupSettingsDialog({ open, onOpenChange, group, onGroupUpdated,
                 .from('group-avatars')
                 .getPublicUrl(filePath);
 
+            // Add cache-busting query param
+            const avatarUrlWithCacheBust = `${publicUrl}?t=${Date.now()}`;
+
             const { error: updateError } = await supabase
                 .from('groups')
-                .update({ avatar_url: publicUrl })
+                .update({ avatar_url: avatarUrlWithCacheBust })
                 .eq('id', group.id);
 
             if (updateError) throw updateError;
 
+            // Refresh groups in sidebar
+            await refreshGroups();
             onGroupUpdated();
+            showToast('Avatar updated successfully', 'success');
         } catch (error) {
-            console.error('Error uploading avatar:', error);
+            showToast('Failed to upload avatar', 'error');
         } finally {
             setUploading(false);
         }

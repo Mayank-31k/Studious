@@ -100,6 +100,8 @@ export interface Database {
                     file_url: string | null;
                     file_name: string | null;
                     file_type: string | null;
+                    file_size: number | null;
+                    deleted_at: string | null;
                     created_at: string;
                 };
                 Insert: {
@@ -111,6 +113,8 @@ export interface Database {
                     file_url?: string | null;
                     file_name?: string | null;
                     file_type?: string | null;
+                    file_size?: number | null;
+                    deleted_at?: string | null;
                     created_at?: string;
                 };
                 Update: {
@@ -122,7 +126,29 @@ export interface Database {
                     file_url?: string | null;
                     file_name?: string | null;
                     file_type?: string | null;
+                    file_size?: number | null;
+                    deleted_at?: string | null;
                     created_at?: string;
+                };
+            };
+            message_deletions: {
+                Row: {
+                    id: string;
+                    message_id: string;
+                    user_id: string;
+                    deleted_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    message_id: string;
+                    user_id: string;
+                    deleted_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    message_id?: string;
+                    user_id?: string;
+                    deleted_at?: string;
                 };
             };
             shared_resources: {
@@ -167,11 +193,11 @@ export interface Database {
     };
 }
 
-// Helper types
 export type Profile = Database['public']['Tables']['profiles']['Row'];
 export type Group = Database['public']['Tables']['groups']['Row'];
 export type GroupMember = Database['public']['Tables']['group_members']['Row'];
 export type Message = Database['public']['Tables']['messages']['Row'];
+export type MessageDeletion = Database['public']['Tables']['message_deletions']['Row'];
 export type SharedResource = Database['public']['Tables']['shared_resources']['Row'];
 
 // Extended types with relations

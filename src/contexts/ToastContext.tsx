@@ -1,6 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CheckCircle2, XCircle, AlertTriangle, Info, X } from 'lucide-react';
 
 interface Toast {
     id: string;
@@ -35,45 +37,44 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         setToasts((prev) => prev.filter((toast) => toast.id !== id));
     }, []);
 
-    const getToastStyles = (type: string) => {
+    const getToastConfig = (type: string) => {
         switch (type) {
             case 'success':
-                return 'bg-[#4CAF50]/10 border-[#4CAF50] text-[#4CAF50]';
+                return {
+                    bgClass: 'bg-white dark:bg-zinc-900',
+                    borderClass: 'border-green-200 dark:border-green-800',
+                    iconBgClass: 'bg-green-50 dark:bg-green-900/30',
+                    iconColorClass: 'text-green-600 dark:text-green-400',
+                    textClass: 'text-zinc-900 dark:text-zinc-100',
+                    icon: CheckCircle2
+                };
             case 'error':
-                return 'bg-[#EF5350]/10 border-[#EF5350] text-[#EF5350]';
+                return {
+                    bgClass: 'bg-white dark:bg-zinc-900',
+                    borderClass: 'border-red-200 dark:border-red-800',
+                    iconBgClass: 'bg-red-50 dark:bg-red-900/30',
+                    iconColorClass: 'text-red-600 dark:text-red-400',
+                    textClass: 'text-zinc-900 dark:text-zinc-100',
+                    icon: XCircle
+                };
             case 'warning':
-                return 'bg-[#E8B923]/10 border-[#E8B923] text-[#E8B923]';
+                return {
+                    bgClass: 'bg-white dark:bg-zinc-900',
+                    borderClass: 'border-amber-200 dark:border-amber-800',
+                    iconBgClass: 'bg-amber-50 dark:bg-amber-900/30',
+                    iconColorClass: 'text-amber-600 dark:text-amber-400',
+                    textClass: 'text-zinc-900 dark:text-zinc-100',
+                    icon: AlertTriangle
+                };
             default:
-                return 'bg-[#4A8C3F]/10 border-[#4A8C3F] text-[#E8F5E9]';
-        }
-    };
-
-    const getIcon = (type: string) => {
-        switch (type) {
-            case 'success':
-                return (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                );
-            case 'error':
-                return (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                );
-            case 'warning':
-                return (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                );
-            default:
-                return (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                );
+                return {
+                    bgClass: 'bg-white dark:bg-zinc-900',
+                    borderClass: 'border-zinc-200 dark:border-zinc-700',
+                    iconBgClass: 'bg-zinc-100 dark:bg-zinc-800',
+                    iconColorClass: 'text-zinc-600 dark:text-zinc-400',
+                    textClass: 'text-zinc-900 dark:text-zinc-100',
+                    icon: Info
+                };
         }
     };
 
@@ -81,31 +82,51 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         <ToastContext.Provider value={{ showToast, showSuccess, showError }}>
             {children}
 
-            {/* Toast Container */}
-            <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
-                {toasts.map((toast) => (
-                    <div
-                        key={toast.id}
-                        className={`
-              flex items-center gap-3 p-4 border-4 shadow-lg
-              animate-slide-up backdrop-blur-sm
-              ${getToastStyles(toast.type)}
-            `}
-                    >
-                        <div className="flex-shrink-0">
-                            {getIcon(toast.type)}
-                        </div>
-                        <p className="flex-1 text-sm font-medium">{toast.message}</p>
-                        <button
-                            onClick={() => removeToast(toast.id)}
-                            className="flex-shrink-0 hover:opacity-70 transition-opacity"
-                        >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-                ))}
+            {/* Toast Container - Bottom Right */}
+            <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3 max-w-sm">
+                <AnimatePresence mode="popLayout">
+                    {toasts.map((toast) => {
+                        const config = getToastConfig(toast.type);
+                        const Icon = config.icon;
+
+                        return (
+                            <motion.div
+                                key={toast.id}
+                                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, x: 100, scale: 0.95 }}
+                                transition={{
+                                    type: 'spring',
+                                    stiffness: 400,
+                                    damping: 25
+                                }}
+                                className={`
+                                    flex items-start gap-3 p-4 rounded-xl border shadow-lg
+                                    backdrop-blur-sm
+                                    ${config.bgClass} ${config.borderClass}
+                                `}
+                            >
+                                {/* Icon */}
+                                <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${config.iconBgClass}`}>
+                                    <Icon className={`w-4 h-4 ${config.iconColorClass}`} />
+                                </div>
+
+                                {/* Message */}
+                                <p className={`flex-1 text-sm font-medium leading-relaxed pt-1 ${config.textClass}`}>
+                                    {toast.message}
+                                </p>
+
+                                {/* Close Button */}
+                                <button
+                                    onClick={() => removeToast(toast.id)}
+                                    className="flex-shrink-0 p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                                >
+                                    <X className="w-4 h-4 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300" />
+                                </button>
+                            </motion.div>
+                        );
+                    })}
+                </AnimatePresence>
             </div>
         </ToastContext.Provider>
     );

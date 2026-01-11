@@ -139,6 +139,27 @@
   h3 {
     @apply tracking-tight;
   }
+
+  /* Cursor pointer for all interactive elements */
+  button,
+  a,
+  [role="button"],
+  [type="button"],
+  [type="submit"],
+  [type="reset"],
+  input[type="checkbox"],
+  input[type="radio"],
+  select,
+  label:has(input),
+  .cursor-pointer {
+    @apply cursor-pointer;
+  }
+
+  /* Ensure disabled elements don't show pointer */
+  button:disabled,
+  [disabled] {
+    @apply cursor-not-allowed;
+  }
 }
 
 @layer components {

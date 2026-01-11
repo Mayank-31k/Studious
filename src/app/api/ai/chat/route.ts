@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 
 const apiKey = process.env.GEMINI_API_KEY;
 
@@ -18,10 +19,42 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Verify authentication
+        const supabase = await createClient();
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+        if (authError || !user) {
+            return NextResponse.json(
+                { error: 'Authentication required' },
+                { status: 401 }
+            );
+        }
+
         const { message, documentContext, conversationHistory, fileUrl } = await request.json();
 
-        if (!message) {
+        // Input validation
+        if (!message || typeof message !== 'string') {
             return NextResponse.json({ error: 'Message is required' }, { status: 400 });
+        }
+
+        // Message length limit (10,000 characters)
+        const MAX_MESSAGE_LENGTH = 10000;
+        if (message.length > MAX_MESSAGE_LENGTH) {
+            return NextResponse.json(
+                { error: `Message too long. Maximum ${MAX_MESSAGE_LENGTH} characters allowed.` },
+                { status: 400 }
+            );
+        }
+
+        // Validate fileUrl if provided - only allow Supabase storage URLs
+        if (fileUrl) {
+            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+            if (!supabaseUrl || !fileUrl.startsWith(supabaseUrl)) {
+                return NextResponse.json(
+                    { error: 'Invalid file URL' },
+                    { status: 400 }
+                );
+            }
         }
 
         const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
@@ -32,7 +65,6 @@ export async function POST(request: NextRequest) {
         // If we have a PDF file URL, fetch and include it
         if (fileUrl && documentContext?.type === 'document') {
             try {
-                console.log('Fetching PDF from:', fileUrl);
 
                 // Fetch the PDF file
                 const fileResponse = await fetch(fileUrl);
@@ -43,8 +75,6 @@ export async function POST(request: NextRequest) {
                 // Convert to base64
                 const arrayBuffer = await fileResponse.arrayBuffer();
                 const base64Data = Buffer.from(arrayBuffer).toString('base64');
-
-                console.log('PDF fetched and encoded, size:', base64Data.length);
 
                 // Add the PDF as inline data
                 contentParts.push({

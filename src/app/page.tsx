@@ -206,11 +206,11 @@ const Hero = () => {
                 <div className="mt-20">
                     <p className="text-muted-foreground text-sm mb-8">Empowering teams at</p>
                     <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16">
-                        <span className="university-logo">STANFORD</span>
-                        <span className="university-logo">HARVARD</span>
-                        <span className="university-logo">MIT</span>
-                        <span className="university-logo">OXFORD</span>
-                        <span className="university-logo">BERKELEY</span>
+                        <span className="university-logo">DTU</span>
+                        <span className="university-logo">NSUT</span>
+                        <span className="university-logo">IIT Delhi</span>
+                        <span className="university-logo">IIIT Delhi</span>
+                        <span className="university-logo">Delhi University</span>
                     </div>
                 </div>
             </div>
@@ -318,7 +318,7 @@ const Messaging = () => {
                             <div className="flex items-start gap-3">
                                 <div className="w-8 h-8 rounded-full bg-accent-blue/20"></div>
                                 <div className="chat-bubble-left">
-                                    <p className="text-sm">Did you see the new design guidelines?</p>
+                                    <p className="text-sm">🔵 Did you see the new design guidelines?</p>
                                 </div>
                             </div>
 
@@ -326,7 +326,7 @@ const Messaging = () => {
                             <div className="flex items-start gap-3">
                                 <div className="w-8 h-8 rounded-full bg-accent-green/20"></div>
                                 <div className="chat-bubble-left">
-                                    <p className="text-sm">Looking at them now. Love the typography.</p>
+                                    <p className="text-sm">🔵 Looking at them now. Love the typography.</p>
                                 </div>
                             </div>
 
@@ -334,7 +334,7 @@ const Messaging = () => {
                             <div className="flex items-start gap-3">
                                 <div className="w-8 h-8 rounded-full bg-accent-pink/20"></div>
                                 <div className="chat-bubble-left">
-                                    <p className="text-sm">It feels way more refined.</p>
+                                    <p className="text-sm">🔵 It feels way more refined.</p>
                                 </div>
                             </div>
                         </div>
@@ -366,7 +366,7 @@ const CTA = () => {
                             Get started for free
                         </button>
                     </Link>
-                    <button className="btn-ghost">Contact sales</button>
+                    <button className="btn-ghost">Contribute</button>
                 </div>
             </div>
         </section>
@@ -381,7 +381,7 @@ const Footer = () => {
     return (
         <footer className="py-8 px-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
             <div className="container mx-auto flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">Static route</p>
+                <p className="text-sm text-muted-foreground">made with ❤️ by Mayank</p>
                 <p className="text-sm text-muted-foreground">© 2024 Studious</p>
             </div>
         </footer>

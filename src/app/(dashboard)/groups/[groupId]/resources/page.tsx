@@ -23,10 +23,12 @@ export default function ResourcesPage() {
     const router = useRouter();
     const groupId = params['groupId'] as string;
 
-    const { user, loading: authLoading } = useAuth();
+    const { user, loading: authLoading, groups } = useAuth();
     const supabase = createClient();
 
     const [group, setGroup] = useState<Group | null>(null);
+    const cachedGroup = groups.find(g => g.id === groupId);
+    const displayGroup = group || cachedGroup;
     const [resources, setResources] = useState<SharedResourceWithUploader[]>([]);
     const [loading, setLoading] = useState(true);
     const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -189,7 +191,7 @@ export default function ResourcesPage() {
                             <div className="h-6 w-px bg-gray-200" />
                             <div>
                                 <h1 className="text-2xl font-semibold text-gray-900">Resources</h1>
-                                <p className="text-sm text-gray-600 mt-0.5">{group?.name}</p>
+                                <p className="text-sm text-gray-600 mt-0.5">{displayGroup?.name}</p>
                             </div>
                         </div>
                         <Button

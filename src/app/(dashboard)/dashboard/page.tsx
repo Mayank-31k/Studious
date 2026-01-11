@@ -10,6 +10,7 @@ import { Modal, ModalFooter } from '@/components/ui/modal';
 import { Avatar } from '@/components/ui/avatar';
 import { getErrorMessage } from '@/lib/utils/errorHandler';
 import { Plus, ArrowRight, Hash, Loader2 } from 'lucide-react';
+import { LoadingAnimation } from '@/components/ui/loading-animation';
 
 export default function DashboardPage() {
     const { user, profile, loading: authLoading, groups, groupsLoading, refreshGroups } = useAuth();
@@ -122,7 +123,14 @@ export default function DashboardPage() {
         refreshGroups();
     };
 
-    if (authLoading || !user) return null;
+    if (authLoading) {
+        return (
+            <div className="flex-1 flex items-center justify-center bg-white">
+                <LoadingAnimation />
+            </div>
+        );
+    }
+    if (!user) return null;
 
     return (
         <div className="flex-1 overflow-y-auto bg-white">
@@ -159,10 +167,8 @@ export default function DashboardPage() {
 
                 {/* Workspaces Grid */}
                 {groupsLoading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {[1, 2, 3].map((i) => (
-                            <div key={i} className="h-[200px] bg-gray-100 rounded-xl animate-pulse" />
-                        ))}
+                    <div className="flex items-center justify-center py-20">
+                        <LoadingAnimation />
                     </div>
                 ) : groups.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-24 px-6">

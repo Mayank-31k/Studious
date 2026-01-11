@@ -46,7 +46,6 @@ export function AIAssistant({ resource, fileUrl }: AIAssistantProps) {
                 fileName: resource.file_name
             } : null;
 
-            console.log('Sending to AI:', { message: input, documentContext, fileUrl });
 
             const response = await fetch('/api/ai/chat', {
                 method: 'POST',
@@ -59,9 +58,7 @@ export function AIAssistant({ resource, fileUrl }: AIAssistantProps) {
                 })
             });
 
-            console.log('Response status:', response.status);
             const data = await response.json();
-            console.log('Response data:', data);
 
             if (data.error) {
                 throw new Error(data.error + (data.details ? ': ' + data.details : ''));
