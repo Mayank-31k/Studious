@@ -115,7 +115,8 @@ export default function GroupChatPage() {
                             // Show toast notification for messages from other users
                             if (payload.new.sender_id !== user?.id) {
                                 const senderName = senderData.full_name?.split(' ')[0] || 'Someone';
-                                showToast(`${senderName}: "${incomingMessage.content.substring(0, 50)}${incomingMessage.content.length > 50 ? '...' : ''}" • ${updatedMessages.length} messages`, 'info');
+                                const messagePreview = incomingMessage.content ? `"${incomingMessage.content.substring(0, 50)}${incomingMessage.content.length > 50 ? '...' : ''}"` : 'New message';
+                                showToast(`${senderName}: ${messagePreview} • ${updatedMessages.length} messages`, 'info');
                                 setUnreadCount(prev => prev + 1);
                             }
                             return updatedMessages;
