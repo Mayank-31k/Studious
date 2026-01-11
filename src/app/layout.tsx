@@ -1,17 +1,11 @@
 import type { Metadata } from "next";
-import { Inter, Press_Start_2P } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/contexts/ToastContext";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 const inter = Inter({
   variable: "--font-inter",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const pressStart2P = Press_Start_2P({
-  variable: "--font-pixel",
-  weight: "400",
   subsets: ["latin"],
   display: "swap",
 });
@@ -34,13 +28,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${pressStart2P.variable} antialiased bg-[#0F1210] text-[#E8F5E9]`}
+        className={`${inter.variable} antialiased`}
       >
-        <ToastProvider>
-          {children}
-        </ToastProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ToastProvider>
+            {children}
+          </ToastProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

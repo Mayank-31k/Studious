@@ -1,380 +1,262 @@
-/* Google Fonts Import - must be at the very top */
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@300;400;500;600;700&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap');
 @import "tailwindcss";
 
-/* ============================================
-   STUDIOUS - Minecraft-Style Theme
-   Professional Green & Yellow Color Palette
-   ============================================ */
+/* @plugin "tailwindcss-animate"; */
 
-:root {
-  /* Primary Colors - Minecraft Green */
-  --primary: #2D5A27;
-  --primary-light: #4A8C3F;
-  --primary-dark: #1E3D1A;
-  --primary-glow: rgba(74, 140, 63, 0.4);
+@custom-variant dark (&:where(.dark, .dark *));
 
-  /* Secondary Colors - Golden Yellow */
-  --secondary: #E8B923;
-  --secondary-light: #FFD54F;
-  --secondary-dark: #C49A1A;
-  --secondary-glow: rgba(232, 185, 35, 0.4);
-
-  /* Background & Surface */
-  --background: #0F1210;
-  --background-alt: #0A0D0B;
-  --surface: #1A1F1C;
-  --surface-hover: #232A26;
-  --surface-active: #2B3430;
-
-  /* Borders */
-  --border: #2E3830;
-  --border-light: #3D4A42;
-  --border-glow: rgba(74, 140, 63, 0.3);
-
-  /* Text Colors */
-  --text: #E8F5E9;
-  --text-secondary: #B8C9BA;
-  --text-muted: #8BA889;
-  --text-inverse: #0F1210;
-
-  /* Status Colors */
-  --success: #4CAF50;
-  --warning: #FFC107;
-  --error: #EF5350;
-  --info: #29B6F6;
-
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 20px var(--primary-glow);
-  --shadow-glow-yellow: 0 0 20px var(--secondary-glow);
-
-  /* Minecraft Pixel Border */
-  --pixel-border: 4px;
-
-  /* Transitions */
-  --transition-fast: 150ms ease;
-  --transition-normal: 250ms ease;
-  --transition-slow: 400ms ease;
-
+@theme {
   /* Fonts */
-  --font-pixel: 'Press Start 2P', monospace;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-mono: ui-monospace, "JetBrains Mono", monospace;
 
-@theme inline {
+  /* Base Colors */
   --color-background: var(--background);
-  --color-foreground: var(--text);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
-  --color-primary-light: var(--primary-light);
+  --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
-  --color-surface: var(--surface);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
-  --font-sans: var(--font-sans);
-  --font-pixel: var(--font-pixel);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* UI.md Custom Colors */
+  --color-hero-fade: var(--hero-fade);
+  --color-chat-blue: var(--chat-blue);
+  --color-chat-green: var(--chat-green);
+  --color-chat-pink: var(--chat-pink);
+  --color-accent-blue: var(--accent-blue);
+  --color-accent-green: var(--accent-green);
+  --color-accent-pink: var(--accent-pink);
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
 }
 
-/* ============================================
-   BASE STYLES
-   ============================================ */
+/* Base styles and variables */
+:root {
+  /* Light Mode - UI.md Design System */
+  --background: 0 0% 100%;
+  /* Pure white */
+  --foreground: 0 0% 9%;
+  /* Almost black */
 
-* {
-  box-sizing: border-box;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 9%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 9%;
+
+  --primary: 0 0% 9%;
+  /* Black for buttons */
+  --primary-foreground: 0 0% 100%;
+  /* White text on black */
+
+  --secondary: 0 0% 96%;
+  /* Light gray backgrounds */
+  --secondary-foreground: 0 0% 9%;
+
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 45%;
+  /* Medium gray text */
+
+  --accent: 0 0% 96%;
+  --accent-foreground: 0 0% 9%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 0 0% 90%;
+  --input: 0 0% 90%;
+  --ring: 0 0% 9%;
+  /* Focus ring */
+
+  --radius: 0.75rem;
+  /* 12px default radius */
+
+  /* UI.md Custom Accent Colors */
+  --hero-fade: 0 0% 75%;
+  /* Faded text in hero */
+  --chat-blue: 210 100% 95%;
+  /* Light blue backgrounds */
+  --chat-green: 150 60% 95%;
+  /* Light green backgrounds */
+  --chat-pink: 330 100% 95%;
+  /* Light pink backgrounds */
+  --accent-blue: 210 100% 60%;
+  /* Vibrant blue */
+  --accent-green: 150 60% 50%;
+  /* Vibrant green */
+  --accent-pink: 330 80% 70%;
+  /* Vibrant pink */
 }
 
-html {
-  scroll-behavior: smooth;
+.dark {
+  /* Dark Mode */
+  --background: 0 0% 4%;
+  /* Very dark gray */
+  --foreground: 0 0% 98%;
+  /* Almost white */
+  --card: 0 0% 7%;
+  --card-foreground: 0 0% 98%;
+  --primary: 0 0% 98%;
+  --primary-foreground: 0 0% 9%;
+  --secondary: 0 0% 15%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 65%;
+  --border: 0 0% 20%;
+  --input: 0 0% 20%;
+  --ring: 0 0% 85%;
 }
 
-body {
-  background: var(--background);
-  color: var(--text);
-  font-family: var(--font-sans);
-  line-height: 1.6;
-  min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply tracking-tight;
+  }
 }
 
-/* ============================================
-   TYPOGRAPHY
-   ============================================ */
+@layer components {
+  .hero-title {
+    font-family: var(--font-serif);
+    @apply text-6xl md:text-7xl lg:text-8xl font-medium tracking-tight leading-none;
+  }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-pixel);
-  color: var(--text);
-  line-height: 1.4;
-  letter-spacing: 0.5px;
+  .hero-title-fade {
+    color: hsl(var(--hero-fade));
+    font-style: italic;
+  }
+
+  .section-title {
+    font-family: var(--font-serif);
+    @apply text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight leading-tight;
+  }
+
+  .section-title-fade {
+    color: hsl(var(--hero-fade));
+    font-style: italic;
+  }
+
+  .feature-card {
+    @apply bg-card rounded-2xl p-6 border-0 shadow-lg hover:shadow-xl transition-all duration-300;
+  }
+
+  .workspace-card {
+    @apply bg-card rounded-2xl border-0 shadow-2xl overflow-hidden;
+  }
+
+  .chat-bubble-left {
+    @apply bg-secondary rounded-2xl rounded-bl-sm px-4 py-3 max-w-xs;
+  }
+
+  .chat-bubble-right {
+    @apply bg-primary text-primary-foreground rounded-2xl rounded-br-sm px-4 py-3 max-w-xs;
+  }
+
+  .trust-badge {
+    @apply text-muted-foreground/40 font-semibold text-sm tracking-widest uppercase;
+  }
+
+  .nav-link {
+    @apply text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm font-medium;
+  }
+
+  .btn-primary {
+    @apply bg-black text-white dark:bg-white dark:text-black px-6 py-3 rounded-full font-medium text-sm inline-flex items-center gap-2 hover:opacity-90 transition-opacity shadow-md hover:shadow-lg;
+  }
+
+  .btn-ghost {
+    @apply text-foreground px-4 py-3 font-medium text-sm hover:text-muted-foreground transition-colors;
+  }
+
+  .indicator-dot {
+    @apply w-3 h-3 rounded-full;
+  }
+
+  .indicator-blue {
+    background-color: hsl(var(--accent-blue));
+  }
+
+  .indicator-green {
+    background-color: hsl(var(--accent-green));
+  }
+
+  .indicator-pink {
+    background-color: hsl(var(--accent-pink));
+  }
+
+  .file-card {
+    @apply bg-secondary/50 rounded-xl px-4 py-3 flex items-center gap-3 border-0 shadow-sm;
+  }
+
+  .workspace-item {
+    @apply flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary/50 transition-colors cursor-pointer;
+  }
+
+  .workspace-avatar {
+    @apply w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-xs font-semibold;
+  }
+
+  .feature-badge {
+    @apply inline-flex items-center gap-2 bg-secondary text-foreground px-4 py-2 rounded-full text-sm font-medium border-0 shadow-md;
+  }
+
+  .university-logo {
+    @apply text-muted-foreground/30 font-bold text-lg tracking-wider;
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-foreground to-muted-foreground;
+  }
+
+  .check-item {
+    @apply flex items-center gap-3 text-muted-foreground;
+  }
+
+  .check-icon {
+    @apply w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center;
+  }
 }
 
-h1 {
-  font-size: 1.75rem;
-  text-shadow: 3px 3px 0 var(--primary-dark);
-}
-
-h2 {
-  font-size: 1.25rem;
-  text-shadow: 2px 2px 0 var(--primary-dark);
-}
-
-h3 {
-  font-size: 1rem;
-}
-
-h4,
-h5,
-h6 {
-  font-size: 0.875rem;
-}
-
-p {
-  font-family: var(--font-sans);
-  color: var(--text-secondary);
-}
-
-a {
-  color: var(--secondary);
-  text-decoration: none;
-  transition: color var(--transition-fast);
-}
-
-a:hover {
-  color: var(--secondary-light);
-  text-decoration: underline;
-}
-
-/* ============================================
-   PIXEL BORDER UTILITY
-   ============================================ */
-
-.pixel-border {
-  position: relative;
-  background: var(--surface);
-  border: var(--pixel-border) solid var(--border);
-  box-shadow:
-    inset -4px -4px 0 rgba(0, 0, 0, 0.3),
-    inset 4px 4px 0 rgba(255, 255, 255, 0.05),
-    var(--shadow-md);
-}
-
-.pixel-border-primary {
-  border-color: var(--primary);
-  box-shadow:
-    inset -4px -4px 0 var(--primary-dark),
-    inset 4px 4px 0 var(--primary-light),
-    var(--shadow-glow);
-}
-
-.pixel-border-secondary {
-  border-color: var(--secondary);
-  box-shadow:
-    inset -4px -4px 0 var(--secondary-dark),
-    inset 4px 4px 0 var(--secondary-light),
-    var(--shadow-glow-yellow);
-}
-
-/* ============================================
-   CUSTOM SCROLLBAR
-   ============================================ */
-
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--background-alt);
-  border-left: 2px solid var(--border);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--primary);
-  border: 2px solid var(--primary-dark);
+  @apply bg-muted-foreground/20 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-light);
-}
-
-::-webkit-scrollbar-corner {
-  background: var(--background-alt);
-}
-
-/* ============================================
-   ANIMATIONS
-   ============================================ */
-
-@keyframes pulse-glow {
-
-  0%,
-  100% {
-    box-shadow: 0 0 5px var(--primary-glow);
-  }
-
-  50% {
-    box-shadow: 0 0 20px var(--primary-glow), 0 0 40px var(--primary-glow);
-  }
-}
-
-@keyframes float {
-
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes pixel-flash {
-
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.7;
-  }
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-.animate-slide-up {
-  animation: slide-up 0.4s ease-out;
-}
-
-.animate-fade-in {
-  animation: fade-in 0.3s ease-out;
-}
-
-/* ============================================
-   UTILITY CLASSES
-   ============================================ */
-
-.font-pixel {
-  font-family: var(--font-pixel);
-}
-
-.font-sans {
-  font-family: var(--font-sans);
-}
-
-.text-gradient {
-  background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.bg-grid {
-  background-image:
-    linear-gradient(rgba(45, 90, 39, 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(45, 90, 39, 0.1) 1px, transparent 1px);
-  background-size: 20px 20px;
-}
-
-.glass {
-  background: rgba(26, 31, 28, 0.8);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--border);
-}
-
-/* ============================================
-   SELECTION
-   ============================================ */
-
-::selection {
-  background: var(--primary);
-  color: var(--text);
-}
-
-::-moz-selection {
-  background: var(--primary);
-  color: var(--text);
-}
-
-/* ============================================
-   FOCUS STATES
-   ============================================ */
-
-:focus-visible {
-  outline: 2px solid var(--secondary);
-  outline-offset: 2px;
-}
-
-/* ============================================
-   FORM DEFAULTS
-   ============================================ */
-
-input,
-textarea,
-select {
-  font-family: var(--font-sans);
-}
-
-input::placeholder,
-textarea::placeholder {
-  color: var(--text-muted);
-}
-
-/* ============================================
-   LOADING SKELETON
-   ============================================ */
-
-.skeleton {
-  background: linear-gradient(90deg,
-      var(--surface) 25%,
-      var(--surface-hover) 50%,
-      var(--surface) 75%);
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s ease-in-out infinite;
-}
-
-@keyframes skeleton-loading {
-  0% {
-    background-position: 200% 0;
-  }
-
-  100% {
-    background-position: -200% 0;
-  }
+  @apply bg-muted-foreground/40;
 }

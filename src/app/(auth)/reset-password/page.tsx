@@ -3,9 +3,12 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { getErrorMessage } from '@/lib/utils/errorHandler';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Mail, ArrowRight, CheckCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function ResetPasswordPage() {
     const [email, setEmail] = useState('');
@@ -23,7 +26,7 @@ export default function ResetPasswordPage() {
         const { error } = await resetPassword(email);
 
         if (error) {
-            setError(error.message);
+            setError(getErrorMessage(error));
             setLoading(false);
         } else {
             setSuccess(true);
@@ -32,101 +35,94 @@ export default function ResetPasswordPage() {
 
     if (success) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[#0F1210] bg-grid p-4">
-                <div className="w-full max-w-md animate-slide-up">
-                    <Card variant="glow" padding="lg">
+            <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-black">
+                {/* Ambient Background */}
+                <div className="absolute inset-0 bg-black">
+                    <div className="absolute top-[-20%] left-[20%] w-[60%] h-[60%] bg-purple-500/10 rounded-full blur-[100px] animate-pulse-glow" />
+                </div>
+
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="w-full max-w-md relative z-10 px-4"
+                >
+                    <Card className="bg-black/40 backdrop-blur-xl border-white/10 shadow-2xl">
                         <CardContent className="text-center py-8">
-                            <div className="
-                w-16 h-16 mx-auto mb-6 flex items-center justify-center
-                bg-[#E8B923] border-4 border-[#C49A1A]
-                shadow-[0_0_30px_rgba(232,185,35,0.4)]
-              ">
-                                <svg className="w-8 h-8 text-[#0F1210]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                </svg>
+                            <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center bg-green-500/10 rounded-full">
+                                <CheckCircle className="w-8 h-8 text-green-500" />
                             </div>
-                            <h2 className="font-pixel text-sm text-[#E8F5E9] mb-3">CHECK YOUR EMAIL</h2>
-                            <p className="text-[#B8C9BA] mb-6">
-                                If an account exists for <span className="text-[#E8B923]">{email}</span>,
+                            <h2 className="text-xl font-bold text-white mb-2">Check your email</h2>
+                            <p className="text-muted-foreground mb-6">
+                                If an account exists for <span className="text-white font-medium">{email}</span>,
                                 we&apos;ve sent a password reset link.
                             </p>
                             <Link href="/login">
-                                <Button variant="outline" size="md">
+                                <Button variant="outline" className="border-white/10 hover:bg-white/5 text-white">
                                     Back to Login
                                 </Button>
                             </Link>
                         </CardContent>
                     </Card>
-                </div>
+                </motion.div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#0F1210] bg-grid p-4">
-            <div className="w-full max-w-md animate-slide-up">
-                {/* Logo */}
-                <div className="text-center mb-8">
-                    <Link href="/" className="inline-block">
-                        <div className="
-              w-16 h-16 mx-auto mb-4 flex items-center justify-center
-              bg-[#2D5A27] border-4 border-[#1E3D1A]
-              shadow-[inset_-3px_-3px_0_#1E3D1A,inset_3px_3px_0_#4A8C3F,0_0_30px_rgba(74,140,63,0.4)]
-            ">
-                            <span className="font-pixel text-[#E8B923] text-xl">S</span>
-                        </div>
-                    </Link>
-                    <h1 className="font-pixel text-xl text-[#E8F5E9]">STUDIOUS</h1>
-                    <p className="text-[#8BA889] mt-2">Reset your password</p>
+        <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-black">
+            {/* Ambient Background */}
+            <div className="absolute inset-0 bg-black">
+                <div className="absolute bottom-[-20%] right-[10%] w-[60%] h-[60%] bg-blue-500/10 rounded-full blur-[100px] animate-pulse-glow" />
+            </div>
+
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="w-full max-w-md relative z-10 px-4"
+            >
+                <div className="mb-8 text-center">
+                    <h1 className="text-3xl font-bold tracking-tighter text-white mb-2">Reset Password</h1>
+                    <p className="text-muted-foreground">Enter your email to receive instructions</p>
                 </div>
 
-                <Card variant="glow" padding="lg">
-                    <CardHeader>
-                        <CardTitle>Forgot Password?</CardTitle>
-                        <CardDescription>Enter your email and we&apos;ll send you a reset link</CardDescription>
-                    </CardHeader>
-
-                    <CardContent>
-                        <form onSubmit={handleSubmit} className="space-y-5">
+                <Card className="bg-black/40 backdrop-blur-xl border-white/10 shadow-2xl">
+                    <CardContent className="pt-6">
+                        <form onSubmit={handleSubmit} className="space-y-4">
                             {error && (
-                                <div className="p-3 bg-[#EF5350]/10 border-2 border-[#EF5350] text-[#EF5350] text-sm">
+                                <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded text-sm">
                                     {error}
                                 </div>
                             )}
 
                             <Input
-                                label="Email Address"
                                 type="email"
-                                placeholder="you@college.edu"
+                                placeholder="name@example.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
-                                leftIcon={
-                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                    </svg>
-                                }
+                                leftIcon={<Mail className="w-4 h-4" />}
+                                className="bg-white/5 border-white/10 text-white placeholder:text-neutral-500 focus:bg-white/10 focus:border-blue-500/50"
                             />
 
                             <Button
                                 type="submit"
-                                variant="primary"
+                                className="w-full bg-white text-black hover:bg-neutral-200 border-0"
                                 size="lg"
-                                className="w-full"
                                 isLoading={loading}
                             >
                                 Send Reset Link
+                                <ArrowRight className="w-4 h-4 ml-2" />
                             </Button>
                         </form>
                     </CardContent>
-
-                    <CardFooter className="justify-center">
-                        <Link href="/login" className="text-sm text-[#E8B923] hover:text-[#FFD54F]">
+                    <CardFooter className="justify-center border-t border-white/5 pt-6">
+                        <Link href="/login" className="text-sm text-neutral-400 hover:text-white transition-colors">
                             ← Back to Login
                         </Link>
                     </CardFooter>
                 </Card>
-            </div>
+            </motion.div>
         </div>
     );
 }

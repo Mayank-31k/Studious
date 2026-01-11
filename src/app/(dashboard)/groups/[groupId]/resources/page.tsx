@@ -2,27 +2,28 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { createClient } from '@/lib/supabase/client';
-import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Modal, ModalFooter } from '@/components/ui/modal';
-import { Input, Textarea } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Avatar } from '@/components/ui/avatar';
+import { FileText, Image as ImageIcon, Video, Link as LinkIcon, Download, Plus, Upload, ArrowLeft } from 'lucide-react';
 import type { Group, SharedResource, SharedResourceWithUploader } from '@/types/database.types';
+import Link from 'next/link';
+import { DocumentViewer } from '@/components/resources/DocumentViewer';
 
-// Simple in-memory cache for resources
+// In-memory cache for resources
 const resourcesCache = new Map<string, { data: SharedResourceWithUploader[], timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export default function ResourcesPage() {
     const params = useParams();
     const router = useRouter();
-    const groupId = params.groupId as string;
+    const groupId = params['groupId'] as string;
 
-    const { user, profile, signOut, loading: authLoading } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const supabase = createClient();
 
     const [group, setGroup] = useState<Group | null>(null);
@@ -32,6 +33,11 @@ export default function ResourcesPage() {
     const [uploading, setUploading] = useState(false);
     const [filter, setFilter] = useState<'all' | 'document' | 'image' | 'video' | 'link'>('all');
     const hasFetched = useRef(false);
+
+    // Document viewer state
+    const [viewerOpen, setViewerOpen] = useState(false);
+    const [selectedResource, setSelectedResource] = useState<SharedResourceWithUploader | null>(null);
+    const [selectedIndex, setSelectedIndex] = useState(0);
 
     // Form state
     const [title, setTitle] = useState('');
@@ -64,50 +70,29 @@ export default function ResourcesPage() {
     }, [user, groupId]);
 
     const fetchGroup = async () => {
-        const { data } = await supabase
-            .from('groups')
-            .select('*')
-            .eq('id', groupId)
-            .single();
-
-        if (data) {
-            setGroup(data);
-        }
+        const { data } = await supabase.from('groups').select('*').eq('id', groupId).single();
+        if (data) setGroup(data);
     };
 
     const fetchResources = async () => {
-        // Only show loading if no cached data
-        if (resources.length === 0) {
-            setLoading(true);
-        }
+        if (resources.length === 0) setLoading(true);
 
         const { data } = await supabase
             .from('shared_resources')
-            .select(`
-        *,
-        uploader:uploaded_by (
-          id,
-          email,
-          full_name,
-          avatar_url
-        )
-      `)
+            .select(`*, uploader:uploaded_by (id, email, full_name, avatar_url)`)
             .eq('group_id', groupId)
             .order('created_at', { ascending: false });
 
         if (data) {
             setResources(data as SharedResourceWithUploader[]);
-            // Update cache
             resourcesCache.set(groupId, { data: data as SharedResourceWithUploader[], timestamp: Date.now() });
         }
-
         setLoading(false);
     };
 
     const handleUpload = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!user) return;
-
         setUploading(true);
 
         let fileUrl = null;
@@ -115,13 +100,9 @@ export default function ResourcesPage() {
         let fileSize = null;
 
         if (resourceType !== 'link' && file) {
-            // Upload file to Supabase Storage
             const fileExt = file.name.split('.').pop();
             const filePath = `${groupId}/${Date.now()}.${fileExt}`;
-
-            const { data: uploadData, error: uploadError } = await supabase.storage
-                .from('group-files')
-                .upload(filePath, file);
+            const { error: uploadError } = await supabase.storage.from('group-files').upload(filePath, file);
 
             if (uploadError) {
                 console.error('Upload error:', uploadError);
@@ -129,41 +110,34 @@ export default function ResourcesPage() {
                 return;
             }
 
-            // Get the public URL for the uploaded file
-            const { data: urlData } = supabase.storage
-                .from('group-files')
-                .getPublicUrl(filePath);
-
-            fileUrl = urlData.publicUrl;
+            fileUrl = filePath;
             fileName = file.name;
             fileSize = file.size;
         } else if (resourceType === 'link') {
             fileUrl = linkUrl;
         }
 
-        const { error } = await supabase
-            .from('shared_resources')
-            .insert({
-                group_id: groupId,
-                uploaded_by: user.id,
-                resource_type: resourceType,
-                file_url: fileUrl,
-                file_name: fileName,
-                file_size: fileSize,
-                title,
-                description: description || null,
-            });
+        const { error } = await supabase.from('shared_resources').insert({
+            group_id: groupId,
+            uploaded_by: user.id,
+            title,
+            description: description || null,
+            resource_type: resourceType,
+            file_url: fileUrl,
+            file_name: fileName,
+            file_size: fileSize,
+        });
 
-        if (!error) {
+        if (error) {
+            console.error('Insert error:', error);
+        } else {
+            resourcesCache.delete(groupId);
+            fetchResources();
+            setUploadModalOpen(false);
             setTitle('');
             setDescription('');
             setFile(null);
             setLinkUrl('');
-            setUploadModalOpen(false);
-            // Clear cache and refresh
-            resourcesCache.delete(groupId);
-            hasFetched.current = false;
-            fetchResources();
         }
 
         setUploading(false);
@@ -171,32 +145,11 @@ export default function ResourcesPage() {
 
     const getResourceIcon = (type: string) => {
         switch (type) {
-            case 'document':
-                return (
-                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                );
-            case 'image':
-                return (
-                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                );
-            case 'video':
-                return (
-                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                );
-            case 'link':
-                return (
-                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                    </svg>
-                );
-            default:
-                return null;
+            case 'document': return <FileText className="w-12 h-12" />;
+            case 'image': return <ImageIcon className="w-12 h-12" />;
+            case 'video': return <Video className="w-12 h-12" />;
+            case 'link': return <LinkIcon className="w-12 h-12" />;
+            default: return <FileText className="w-12 h-12" />;
         }
     };
 
@@ -208,200 +161,163 @@ export default function ResourcesPage() {
     };
 
     const getFileUrl = (resource: SharedResourceWithUploader) => {
-        // If it's a link, return the URL directly
-        if (resource.resource_type === 'link') {
-            return resource.file_url || '#';
-        }
-
-        // For uploaded files
+        if (resource.resource_type === 'link') return resource.file_url || '#';
         if (resource.file_url) {
-            // If it's already a full URL, return it directly
-            if (resource.file_url.startsWith('http')) {
-                return resource.file_url;
-            }
-
-            // Otherwise, generate the public URL from the path
-            const { data } = supabase.storage
-                .from('group-files')
-                .getPublicUrl(resource.file_url);
-
+            if (resource.file_url.startsWith('http')) return resource.file_url;
+            const { data } = supabase.storage.from('group-files').getPublicUrl(resource.file_url);
             return data.publicUrl;
         }
-
         return '#';
     };
 
-    const filteredResources = filter === 'all'
-        ? resources
-        : resources.filter(r => r.resource_type === filter);
+    const filteredResources = filter === 'all' ? resources : resources.filter(r => r.resource_type === filter);
 
-    if (authLoading || !user) {
-        return (
-            <div className="min-h-screen bg-[#0F1210] flex items-center justify-center">
-                <div className="text-center">
-                    <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-[#2D5A27] border-4 border-[#1E3D1A] shadow-[0_0_30px_rgba(74,140,63,0.4)] animate-pulse">
-                        <span className="font-pixel text-[#E8B923] text-lg">S</span>
-                    </div>
-                    <p className="text-[#8BA889]">Loading...</p>
-                </div>
-            </div>
-        );
-    }
+    if (authLoading || !user) return null;
 
     return (
-        <div className="min-h-screen bg-[#0F1210] flex flex-col">
-            <Header user={profile ? { ...profile, id: user.id } : null} onSignOut={signOut} />
-
-            <div className="flex-1 p-6">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-4">
-                        <Link href={`/groups/${groupId}`} className="p-2 text-[#8BA889] hover:text-[#E8F5E9] hover:bg-[#1A1F1C] transition-colors">
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                            </svg>
-                        </Link>
-                        <div>
-                            <h1 className="font-pixel text-base text-[#E8F5E9]">RESOURCES</h1>
-                            <p className="text-sm text-[#8BA889]">{group?.name}</p>
-                        </div>
-                    </div>
-                    <Button variant="primary" onClick={() => setUploadModalOpen(true)}>
-                        <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                        </svg>
-                        Upload
-                    </Button>
-                </div>
-
-                {/* Filters */}
-                <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-                    {(['all', 'document', 'image', 'video', 'link'] as const).map((type) => (
-                        <button
-                            key={type}
-                            onClick={() => setFilter(type)}
-                            className={`
-                px-4 py-2 text-sm font-medium whitespace-nowrap
-                border-4 transition-all
-                ${filter === type
-                                    ? 'bg-[#2D5A27] border-[#1E3D1A] text-[#E8F5E9] shadow-[0_0_15px_rgba(74,140,63,0.3)]'
-                                    : 'bg-[#1A1F1C] border-[#2E3830] text-[#8BA889] hover:border-[#3D4A42] hover:text-[#B8C9BA]'
-                                }
-              `}
-                        >
-                            {type.charAt(0).toUpperCase() + type.slice(1)}
-                        </button>
-                    ))}
-                </div>
-
-                {/* Resources Grid */}
-                {loading ? (
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="h-48 bg-[#1A1F1C] border-4 border-[#2E3830] skeleton" />
-                        ))}
-                    </div>
-                ) : filteredResources.length === 0 ? (
-                    <Card padding="lg">
-                        <CardContent className="text-center py-12">
-                            <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center bg-[#1A1F1C] border-4 border-[#2E3830]">
-                                <svg className="w-8 h-8 text-[#8BA889]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                                </svg>
+        <div className="flex-1 flex flex-col h-full bg-white">
+            {/* Header */}
+            <div className="border-b border-gray-200 bg-white">
+                <div className="max-w-7xl mx-auto px-8 py-6">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <Link href={`/groups/${groupId}`}>
+                                <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                                    <ArrowLeft className="w-4 h-4" />
+                                </Button>
+                            </Link>
+                            <div className="h-6 w-px bg-gray-200" />
+                            <div>
+                                <h1 className="text-2xl font-semibold text-gray-900">Resources</h1>
+                                <p className="text-sm text-gray-600 mt-0.5">{group?.name}</p>
                             </div>
-                            <h3 className="font-pixel text-xs text-[#E8F5E9] mb-2">NO RESOURCES YET</h3>
-                            <p className="text-sm text-[#8BA889] mb-6">
-                                Share documents, images, videos or links with your group
-                            </p>
-                            <Button variant="primary" onClick={() => setUploadModalOpen(true)}>
-                                Upload First Resource
-                            </Button>
-                        </CardContent>
-                    </Card>
-                ) : (
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {filteredResources.map((resource) => (
-                            <a
-                                key={resource.id}
-                                href={getFileUrl(resource)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="block"
-                            >
-                                <Card variant="hover" padding="none" className="overflow-hidden">
-                                    {/* Icon/Preview */}
-                                    <div className="h-32 flex items-center justify-center bg-[#0F1210] border-b-4 border-[#2E3830]">
-                                        {resource.resource_type === 'image' && resource.file_url ? (
-                                            <img
-                                                src={getFileUrl(resource)}
-                                                alt={resource.title}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        ) : (
-                                            <div className="text-[#4A8C3F]">
-                                                {getResourceIcon(resource.resource_type)}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Info */}
-                                    <CardContent className="p-4">
-                                        <h3 className="font-medium text-[#E8F5E9] truncate mb-1">
-                                            {resource.title}
-                                        </h3>
-                                        {resource.description && (
-                                            <p className="text-xs text-[#8BA889] truncate mb-2">
-                                                {resource.description}
-                                            </p>
-                                        )}
-                                        <div className="flex items-center justify-between text-xs text-[#8BA889]">
-                                            <div className="flex items-center gap-2">
-                                                <Avatar
-                                                    src={resource.uploader?.avatar_url}
-                                                    fallback={resource.uploader?.full_name || resource.uploader?.email || '?'}
-                                                    size="xs"
-                                                />
-                                                <span className="truncate max-w-[80px]">
-                                                    {resource.uploader?.full_name?.split(' ')[0] || 'Unknown'}
-                                                </span>
-                                            </div>
-                                            {resource.file_size && (
-                                                <span>{formatFileSize(resource.file_size)}</span>
-                                            )}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </a>
-                        ))}
+                        </div>
+                        <Button
+                            onClick={() => setUploadModalOpen(true)}
+                            className="bg-black hover:bg-gray-800 text-white rounded-lg h-11 px-5"
+                        >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Upload Resource
+                        </Button>
                     </div>
-                )}
+                </div>
             </div>
 
-            {/* Upload Modal */}
-            <Modal
-                isOpen={uploadModalOpen}
-                onClose={() => setUploadModalOpen(false)}
-                title="Upload Resource"
-                description="Share a file or link with your group"
-            >
-                <form onSubmit={handleUpload}>
-                    <div className="space-y-4">
-                        {/* Resource Type Selector */}
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto">
+                <div className="max-w-7xl mx-auto px-8 py-8">
+                    {/* Filter Tabs */}
+                    <div className="flex gap-2 mb-8 border-b border-gray-200">
+                        {(['all', 'document', 'image', 'video', 'link'] as const).map((type) => (
+                            <button
+                                key={type}
+                                onClick={() => setFilter(type)}
+                                className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${filter === type
+                                    ? 'border-black text-gray-900'
+                                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                                    }`}
+                            >
+                                {type.charAt(0).toUpperCase() + type.slice(1)}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Resources Grid */}
+                    {loading ? (
+                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {[1, 2, 3, 4].map((i) => (
+                                <div key={i} className="h-64 bg-gray-100 rounded-xl animate-pulse" />
+                            ))}
+                        </div>
+                    ) : filteredResources.length === 0 ? (
+                        <div className="text-center py-16 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                                <FileText className="w-8 h-8 text-gray-400" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">No resources found</h3>
+                            <p className="text-gray-600 mb-6">Share documents and links with your group</p>
+                            <Button
+                                onClick={() => setUploadModalOpen(true)}
+                                className="bg-black hover:bg-gray-800 text-white rounded-lg"
+                            >
+                                <Plus className="w-4 h-4 mr-2" />
+                                Upload First Resource
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {filteredResources.map((resource, index) => (
+                                <button
+                                    key={resource.id}
+                                    onClick={() => {
+                                        setSelectedResource(resource);
+                                        setSelectedIndex(index);
+                                        setViewerOpen(true);
+                                    }}
+                                    className="block group text-left w-full"
+                                >
+                                    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 hover:shadow-lg transition-all cursor-pointer">
+                                        <div className="h-40 flex items-center justify-center bg-gray-50 relative group-hover:bg-gray-100 transition-colors">
+                                            {resource.resource_type === 'image' && resource.file_url ? (
+                                                <img src={getFileUrl(resource)} alt={resource.title} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="text-gray-400">{getResourceIcon(resource.resource_type)}</div>
+                                            )}
+                                        </div>
+                                        <div className="p-4">
+                                            <h3 className="font-semibold text-gray-900 truncate mb-1">{resource.title}</h3>
+                                            {resource.description && <p className="text-sm text-gray-600 truncate mb-3">{resource.description}</p>}
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <Avatar
+                                                        src={resource.uploader?.avatar_url}
+                                                        fallback={resource.uploader?.full_name || '?'}
+                                                        size="xs"
+                                                        className="w-6 h-6"
+                                                    />
+                                                    <span className="text-xs text-gray-600 truncate max-w-[100px]">
+                                                        {resource.uploader?.full_name?.split(' ')[0]}
+                                                    </span>
+                                                </div>
+                                                {resource.file_size && (
+                                                    <span className="text-xs text-gray-500">{formatFileSize(resource.file_size)}</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Upload Dialog */}
+            <Dialog open={uploadModalOpen} onOpenChange={setUploadModalOpen}>
+                <DialogContent onClose={() => setUploadModalOpen(false)} className="sm:max-w-[480px] bg-white border-gray-200 p-0">
+                    <div className="p-6 border-b border-gray-100">
+                        <DialogTitle className="text-2xl font-semibold text-gray-900">
+                            Upload Resource
+                        </DialogTitle>
+                        <DialogDescription className="text-[15px] text-gray-600 mt-1">
+                            Share a file or link with your group
+                        </DialogDescription>
+                    </div>
+
+                    <form onSubmit={handleUpload} className="p-6 space-y-5">
+                        {/* Type Selection */}
                         <div>
-                            <label className="block text-sm font-medium text-[#B8C9BA] mb-2">Type</label>
+                            <label className="block text-sm font-medium text-gray-900 mb-3">Resource Type</label>
                             <div className="grid grid-cols-4 gap-2">
                                 {(['document', 'image', 'video', 'link'] as const).map((type) => (
                                     <button
                                         key={type}
                                         type="button"
                                         onClick={() => setResourceType(type)}
-                                        className={`
-                      p-2 text-center text-xs border-4 transition-all
-                      ${resourceType === type
-                                                ? 'bg-[#2D5A27] border-[#1E3D1A] text-[#E8F5E9]'
-                                                : 'bg-[#1A1F1C] border-[#2E3830] text-[#8BA889] hover:border-[#3D4A42]'
-                                            }
-                    `}
+                                        className={`p-3 text-sm rounded-lg border transition-colors ${resourceType === type
+                                            ? 'bg-black text-white border-black'
+                                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                            }`}
                                     >
                                         {type.charAt(0).toUpperCase() + type.slice(1)}
                                     </button>
@@ -409,64 +325,107 @@ export default function ResourcesPage() {
                             </div>
                         </div>
 
-                        <Input
-                            label="Title"
-                            placeholder="Resource title"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            required
-                        />
-
-                        <Textarea
-                            label="Description (Optional)"
-                            placeholder="Brief description..."
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            rows={2}
-                        />
-
-                        {resourceType === 'link' ? (
+                        {/* Title */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-900 mb-2">Title</label>
                             <Input
-                                label="URL"
-                                type="url"
-                                placeholder="https://..."
-                                value={linkUrl}
-                                onChange={(e) => setLinkUrl(e.target.value)}
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
                                 required
+                                className="h-11 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-gray-900 rounded-lg"
                             />
-                        ) : (
+                        </div>
+
+                        {/* Description */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-900 mb-2">Description</label>
+                            <Textarea
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                className="min-h-[80px] bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-gray-900 rounded-lg resize-none"
+                            />
+                        </div>
+
+                        {/* File/Link Input */}
+                        {resourceType === 'link' ? (
                             <div>
-                                <label className="block text-sm font-medium text-[#B8C9BA] mb-2">File</label>
-                                <div className="
-                  relative border-4 border-dashed border-[#2E3830] p-6 text-center
-                  hover:border-[#4A8C3F] transition-colors cursor-pointer
-                ">
-                                    <input
-                                        type="file"
-                                        onChange={(e) => setFile(e.target.files?.[0] || null)}
-                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                        required={resourceType !== 'link'}
-                                    />
-                                    {file ? (
-                                        <p className="text-sm text-[#E8F5E9]">{file.name}</p>
-                                    ) : (
-                                        <p className="text-sm text-[#8BA889]">Click or drag file here</p>
-                                    )}
-                                </div>
+                                <label className="block text-sm font-medium text-gray-900 mb-2">URL</label>
+                                <Input
+                                    type="url"
+                                    value={linkUrl}
+                                    onChange={(e) => setLinkUrl(e.target.value)}
+                                    required
+                                    className="h-11 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-gray-900 rounded-lg"
+                                />
+                            </div>
+                        ) : (
+                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:bg-gray-50 cursor-pointer relative transition-colors">
+                                <input
+                                    type="file"
+                                    onChange={(e) => setFile(e.target.files?.[0] || null)}
+                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                />
+                                {file ? (
+                                    <div className="flex flex-col items-center gap-2">
+                                        <FileText className="w-8 h-8 text-gray-400" />
+                                        <p className="text-sm font-medium text-gray-900">{file.name}</p>
+                                        <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center gap-2 text-gray-600">
+                                        <Upload className="w-8 h-8 mb-1" />
+                                        <span className="text-sm font-medium">Click to upload or drag and drop</span>
+                                        <span className="text-xs text-gray-500">PDF, PNG, JPG, MP4 (max 50MB)</span>
+                                    </div>
+                                )}
                             </div>
                         )}
-                    </div>
 
-                    <ModalFooter>
-                        <Button variant="ghost" type="button" onClick={() => setUploadModalOpen(false)}>
-                            Cancel
-                        </Button>
-                        <Button variant="primary" type="submit" isLoading={uploading}>
-                            Upload
-                        </Button>
-                    </ModalFooter>
-                </form>
-            </Modal>
+                        {/* Actions */}
+                        <div className="flex gap-3 pt-4">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setUploadModalOpen(false)}
+                                className="flex-1 h-11 border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={uploading}
+                                className="flex-1 h-11 bg-black hover:bg-gray-800 text-white font-medium rounded-lg"
+                            >
+                                {uploading ? 'Uploading...' : 'Upload'}
+                            </Button>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Document Viewer */}
+            <DocumentViewer
+                open={viewerOpen}
+                onOpenChange={setViewerOpen}
+                resource={selectedResource}
+                fileUrl={selectedResource ? getFileUrl(selectedResource) : ''}
+                onNext={() => {
+                    if (selectedIndex < filteredResources.length - 1) {
+                        const nextIndex = selectedIndex + 1;
+                        setSelectedIndex(nextIndex);
+                        setSelectedResource(filteredResources[nextIndex]);
+                    }
+                }}
+                onPrevious={() => {
+                    if (selectedIndex > 0) {
+                        const prevIndex = selectedIndex - 1;
+                        setSelectedIndex(prevIndex);
+                        setSelectedResource(filteredResources[prevIndex]);
+                    }
+                }}
+                hasNext={selectedIndex < filteredResources.length - 1}
+                hasPrevious={selectedIndex > 0}
+            />
         </div>
     );
 }

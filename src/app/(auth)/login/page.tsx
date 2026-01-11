@@ -8,7 +8,6 @@ import { useToast } from '@/contexts/ToastContext';
 import { getErrorMessage } from '@/lib/utils/errorHandler';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -41,89 +40,83 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#0F1210] bg-grid p-4">
-            <div className="w-full max-w-md animate-slide-up">
-                {/* Logo */}
-                <div className="text-center mb-8">
-                    <Link href="/" className="inline-block">
-                        <div className="
-              w-16 h-16 mx-auto mb-4 flex items-center justify-center
-              bg-[#2D5A27] border-4 border-[#1E3D1A]
-              shadow-[inset_-3px_-3px_0_#1E3D1A,inset_3px_3px_0_#4A8C3F,0_0_30px_rgba(74,140,63,0.4)]
-            ">
-                            <span className="font-pixel text-[#E8B923] text-xl">S</span>
-                        </div>
-                    </Link>
-                    <h1 className="font-pixel text-xl text-[#E8F5E9]">STUDIOUS</h1>
-                    <p className="text-[#8BA889] mt-2">Welcome back, scholar</p>
+        <div className="min-h-screen flex items-center justify-center bg-background px-4">
+            <div className="w-full max-w-md space-y-8">
+                {/* Header */}
+                <div className="text-center">
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                        Welcome back
+                    </h1>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                        Enter your credentials to sign in to your account
+                    </p>
                 </div>
 
-                <Card variant="glow" padding="lg">
-                    <CardHeader>
-                        <CardTitle>Log In</CardTitle>
-                        <CardDescription>Enter your credentials to access your groups</CardDescription>
-                    </CardHeader>
+                {/* Google Sign In Button */}
+                <Button variant="outline" className="w-full h-11" type="button">
+                    <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+                        <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
+                    </svg>
+                    Continue with Google
+                </Button>
 
-                    <CardContent>
-                        <form onSubmit={handleSubmit} className="space-y-5">
-                            <Input
-                                label="Email Address"
-                                type="email"
-                                placeholder="you@college.edu"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                                leftIcon={
-                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                    </svg>
-                                }
-                            />
+                {/* Divider */}
+                <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-background px-2 text-muted-foreground">
+                            Or continue with
+                        </span>
+                    </div>
+                </div>
 
-                            <Input
-                                label="Password"
-                                type="password"
-                                placeholder="••••••••"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                                leftIcon={
-                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                    </svg>
-                                }
-                            />
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                        <Input
+                            label="Email"
+                            type="email"
+                            placeholder="m@example.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                        />
+                    </div>
 
-                            <div className="flex items-center justify-end">
-                                <Link
-                                    href="/reset-password"
-                                    className="text-sm text-[#E8B923] hover:text-[#FFD54F]"
-                                >
-                                    Forgot password?
-                                </Link>
-                            </div>
+                    <div className="space-y-2">
+                        <Input
+                            label="Password"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                    </div>
 
-                            <Button
-                                type="submit"
-                                variant="primary"
-                                size="lg"
-                                className="w-full"
-                                isLoading={loading}
-                            >
-                                Log In
-                            </Button>
-                        </form>
-                    </CardContent>
+                    <Button
+                        type="submit"
+                        className="w-full"
+                        size="lg"
+                        isLoading={loading}
+                    >
+                        Sign In
+                    </Button>
+                </form>
 
-                    <CardFooter className="justify-center">
-                        <p className="text-sm text-[#8BA889]">
-                            Don&apos;t have an account?{' '}
-                            <Link href="/signup" className="text-[#E8B923] hover:text-[#FFD54F] font-medium">
-                                Sign up
-                            </Link>
-                        </p>
-                    </CardFooter>
-                </Card>
+                {/* Bottom Links */}
+                <div className="text-center text-sm text-muted-foreground">
+                    <Link href="/reset-password" className="underline underline-offset-4 hover:text-primary">
+                        Forgot your password?
+                    </Link>
+                    <div className="mt-2">
+                        Don&apos;t have an account?{' '}
+                        <Link href="/signup" className="underline underline-offset-4 hover:text-primary">
+                            Sign up
+                        </Link>
+                    </div>
+                </div>
             </div>
         </div>
     );

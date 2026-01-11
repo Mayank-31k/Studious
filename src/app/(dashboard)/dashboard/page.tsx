@@ -5,27 +5,19 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { createClient } from '@/lib/supabase/client';
-import { Header } from '@/components/layout/Header';
-import { Sidebar } from '@/components/layout/Sidebar';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Modal, ModalFooter } from '@/components/ui/modal';
-import { Input, Textarea } from '@/components/ui/input';
 import { Avatar } from '@/components/ui/avatar';
-import type { Group } from '@/types/database.types';
+import { getErrorMessage } from '@/lib/utils/errorHandler';
+import { Plus, ArrowRight, Hash, Loader2 } from 'lucide-react';
 
 export default function DashboardPage() {
-    const { user, profile, signOut, loading: authLoading, groups, groupsLoading, refreshGroups } = useAuth();
+    const { user, profile, loading: authLoading, groups, groupsLoading, refreshGroups } = useAuth();
     const router = useRouter();
     const supabase = createClient();
 
-    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-
-    // Modal states
     const [createModalOpen, setCreateModalOpen] = useState(false);
     const [joinModalOpen, setJoinModalOpen] = useState(false);
-
-    // Form states
     const [newGroupName, setNewGroupName] = useState('');
     const [newGroupDescription, setNewGroupDescription] = useState('');
     const [inviteCode, setInviteCode] = useState('');
@@ -38,48 +30,36 @@ export default function DashboardPage() {
         }
     }, [user, authLoading, router]);
 
-    const generateInviteCode = () => {
-        return Math.random().toString(36).substring(2, 8).toUpperCase();
-    };
+    const generateInviteCode = () => Math.random().toString(36).substring(2, 8).toUpperCase();
 
-    const handleCreateGroup = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleCreateGroup = async () => {
+        if (!newGroupName.trim()) {
+            setFormError('Workspace name is required');
+            return;
+        }
         setFormError('');
         setFormLoading(true);
 
         if (!user) return;
 
         const invite_code = generateInviteCode();
-
-        // Create group
         const { data: group, error: groupError } = await supabase
             .from('groups')
-            .insert({
-                name: newGroupName,
-                description: newGroupDescription || null,
-                created_by: user.id,
-                invite_code,
-            })
-            .select()
-            .single();
+            .insert({ name: newGroupName, description: newGroupDescription || null, created_by: user.id, invite_code })
+            .select().single();
 
         if (groupError) {
-            setFormError(groupError.message);
+            setFormError(getErrorMessage(groupError));
             setFormLoading(false);
             return;
         }
 
-        // Add creator as admin
         const { error: memberError } = await supabase
             .from('group_members')
-            .insert({
-                group_id: group.id,
-                user_id: user.id,
-                role: 'admin',
-            });
+            .insert({ group_id: group.id, user_id: user.id, role: 'admin' });
 
         if (memberError) {
-            setFormError(memberError.message);
+            setFormError(getErrorMessage(memberError));
             setFormLoading(false);
             return;
         }
@@ -91,14 +71,16 @@ export default function DashboardPage() {
         refreshGroups();
     };
 
-    const handleJoinGroup = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleJoinGroup = async () => {
+        if (!inviteCode.trim()) {
+            setFormError('Invite code is required');
+            return;
+        }
         setFormError('');
         setFormLoading(true);
 
         if (!user) return;
 
-        // Find group by invite code
         const { data: group, error: findError } = await supabase
             .from('groups')
             .select('id')
@@ -106,12 +88,11 @@ export default function DashboardPage() {
             .single();
 
         if (findError || !group) {
-            setFormError('Invalid invite code. Please check and try again.');
+            setFormError('Invalid invite code');
             setFormLoading(false);
             return;
         }
 
-        // Check if already a member
         const { data: existing } = await supabase
             .from('group_members')
             .select('id')
@@ -120,22 +101,17 @@ export default function DashboardPage() {
             .single();
 
         if (existing) {
-            setFormError('You are already a member of this group.');
+            setFormError('Already a member');
             setFormLoading(false);
             return;
         }
 
-        // Join group
         const { error: joinError } = await supabase
             .from('group_members')
-            .insert({
-                group_id: group.id,
-                user_id: user.id,
-                role: 'member',
-            });
+            .insert({ group_id: group.id, user_id: user.id, role: 'member' });
 
         if (joinError) {
-            setFormError(joinError.message);
+            setFormError(getErrorMessage(joinError));
             setFormLoading(false);
             return;
         }
@@ -146,212 +122,224 @@ export default function DashboardPage() {
         refreshGroups();
     };
 
-    if (authLoading || !user) {
-        return (
-            <div className="min-h-screen bg-[#0F1210] flex items-center justify-center">
-                <div className="text-center">
-                    <div className="
-            w-16 h-16 mx-auto mb-4 flex items-center justify-center
-            bg-[#2D5A27] border-4 border-[#1E3D1A]
-            shadow-[0_0_30px_rgba(74,140,63,0.4)]
-            animate-pulse
-          ">
-                        <span className="font-pixel text-[#E8B923] text-lg">S</span>
-                    </div>
-                    <p className="text-[#8BA889]">Loading...</p>
-                </div>
-            </div>
-        );
-    }
+    if (authLoading || !user) return null;
 
     return (
-        <div className="min-h-screen bg-[#0F1210] flex flex-col">
-            <Header
-                user={profile ? { ...profile, id: user.id } : null}
-                onSignOut={signOut}
-            />
-
-            <div className="flex-1 flex">
-                <Sidebar
-                    groups={groups}
-                    collapsed={sidebarCollapsed}
-                    onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-                    onCreateGroup={() => setCreateModalOpen(true)}
-                />
-
-                <main className="flex-1 p-6 overflow-auto">
-                    {/* Welcome Section */}
-                    <div className="mb-8">
-                        <h1 className="font-pixel text-base text-[#E8F5E9] mb-2">
-                            WELCOME BACK{profile?.full_name ? `, ${profile.full_name.split(' ')[0].toUpperCase()}` : ''}!
-                        </h1>
-                        <p className="text-[#8BA889]">Manage your study groups and collaborate with classmates</p>
+        <div className="flex-1 overflow-y-auto bg-white">
+            <div className="max-w-[1400px] mx-auto px-8 py-12">
+                {/* Header */}
+                <div className="mb-16">
+                    <div className="flex items-center justify-between mb-12">
+                        <div>
+                            <h1 className="text-[42px] font-semibold text-foreground tracking-tight mb-2">
+                                Workspaces
+                            </h1>
+                            <p className="text-[17px] text-muted-foreground">
+                                Manage your collaborative spaces
+                            </p>
+                        </div>
+                        <div className="flex gap-3">
+                            <Button
+                                variant="outline"
+                                onClick={() => setJoinModalOpen(true)}
+                                className="h-11 px-5 border-border hover:bg-secondary text-foreground font-medium rounded-lg transition-all"
+                            >
+                                Join workspace
+                            </Button>
+                            <Button
+                                onClick={() => setCreateModalOpen(true)}
+                                className="h-11 px-5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-all"
+                            >
+                                <Plus className="w-4 h-4 mr-2" />
+                                New workspace
+                            </Button>
+                        </div>
                     </div>
+                </div>
 
-                    {/* Quick Actions */}
-                    <div className="flex flex-wrap gap-4 mb-8">
+                {/* Workspaces Grid */}
+                {groupsLoading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {[1, 2, 3].map((i) => (
+                            <div key={i} className="h-[200px] bg-gray-100 rounded-xl animate-pulse" />
+                        ))}
+                    </div>
+                ) : groups.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-24 px-6">
+                        <h3 className="text-xl font-semibold text-foreground mb-2">No workspaces yet</h3>
+                        <p className="text-muted-foreground mb-8 text-center max-w-md">
+                            Create your first workspace to start collaborating
+                        </p>
                         <Button
-                            variant="primary"
                             onClick={() => setCreateModalOpen(true)}
-                            leftIcon={
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                </svg>
-                            }
+                            className="h-11 px-6 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg"
                         >
-                            Create Group
-                        </Button>
-                        <Button
-                            variant="secondary"
-                            onClick={() => setJoinModalOpen(true)}
-                            leftIcon={
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                                </svg>
-                            }
-                        >
-                            Join Group
+                            <Plus className="w-4 h-4 mr-2" />
+                            Create workspace
                         </Button>
                     </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {groups.map((group) => (
+                            <Link
+                                key={group.id}
+                                href={`/groups/${group.id}`}
+                                className="group block"
+                            >
+                                <div className="bg-white border border-[#611f69]/30 hover:border-[#611f69] shadow-sm hover:shadow-md transition-all duration-200 h-full rounded-xl overflow-hidden">
+                                    {/* Purple accent bar */}
+                                    <div className="h-1 bg-[#611f69]" />
 
-                    {/* Groups Grid */}
-                    <div className="mb-6">
-                        <h2 className="font-pixel text-xs text-[#B8C9BA] mb-4">YOUR GROUPS</h2>
+                                    <div className="p-5">
+                                        <div className="flex items-start gap-4 mb-3">
+                                            <Avatar
+                                                src={group.avatar_url || undefined}
+                                                fallback={group.name}
+                                                className="w-12 h-12 rounded-xl shadow-sm"
+                                            />
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="text-[17px] font-semibold text-gray-900 mb-1 truncate group-hover:text-[#611f69] transition-colors">
+                                                    {group.name}
+                                                </h3>
+                                                <p className="text-sm text-gray-500 font-mono">
+                                                    #{group.invite_code}
+                                                </p>
+                                            </div>
+                                        </div>
 
-                        {groupsLoading ? (
-                            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {[1, 2, 3].map((i) => (
-                                    <div key={i} className="h-40 bg-[#1A1F1C] border-4 border-[#2E3830] skeleton" />
-                                ))}
-                            </div>
-                        ) : groups.length === 0 ? (
-                            <Card padding="lg">
-                                <CardContent className="text-center py-12">
-                                    <div className="
-                    w-16 h-16 mx-auto mb-6 flex items-center justify-center
-                    bg-[#1A1F1C] border-4 border-[#2E3830]
-                  ">
-                                        <svg className="w-8 h-8 text-[#8BA889]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                        </svg>
+                                        <p className="text-[15px] text-gray-600 line-clamp-2 mb-4">
+                                            {group.description || "No description"}
+                                        </p>
+
+                                        <div className="flex items-center text-sm text-[#611f69] font-medium">
+                                            Open workspace
+                                            <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                                        </div>
                                     </div>
-                                    <h3 className="font-pixel text-xs text-[#E8F5E9] mb-2">NO GROUPS YET</h3>
-                                    <p className="text-sm text-[#8BA889] mb-6">
-                                        Create a new group or join an existing one to start collaborating
-                                    </p>
-                                    <div className="flex justify-center gap-4">
-                                        <Button variant="primary" size="sm" onClick={() => setCreateModalOpen(true)}>
-                                            Create Group
-                                        </Button>
-                                        <Button variant="outline" size="sm" onClick={() => setJoinModalOpen(true)}>
-                                            Join Group
-                                        </Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ) : (
-                            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {groups.map((group) => (
-                                    <Link key={group.id} href={`/groups/${group.id}`}>
-                                        <Card variant="hover" padding="md" className="h-full">
-                                            <CardHeader>
-                                                <div className="flex items-center gap-3">
-                                                    <Avatar fallback={group.name} size="md" variant="pixel" />
-                                                    <CardTitle>{group.name}</CardTitle>
-                                                </div>
-                                                {group.description && (
-                                                    <CardDescription className="mt-2 line-clamp-2">
-                                                        {group.description}
-                                                    </CardDescription>
-                                                )}
-                                            </CardHeader>
-                                            <CardContent>
-                                                <div className="flex items-center justify-between text-xs text-[#8BA889]">
-                                                    <span>Code: {group.invite_code}</span>
-                                                    <svg className="w-5 h-5 text-[#4A8C3F]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                                    </svg>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    </Link>
-                                ))}
-                            </div>
-                        )}
+                                </div>
+                            </Link>
+                        ))}
                     </div>
-                </main>
+                )}
             </div>
 
-            {/* Create Group Modal */}
+            {/* Create Workspace Modal */}
             <Modal
                 isOpen={createModalOpen}
-                onClose={() => setCreateModalOpen(false)}
-                title="Create New Group"
-                description="Start a new study group and invite your classmates"
+                onClose={() => {
+                    setCreateModalOpen(false);
+                    setNewGroupName('');
+                    setNewGroupDescription('');
+                    setFormError('');
+                }}
+                title="Create a new workspace"
+                description="Create a workspace for your team to collaborate"
+                size="md"
             >
-                <form onSubmit={handleCreateGroup}>
-                    {formError && (
-                        <div className="mb-4 p-3 bg-[#EF5350]/10 border-2 border-[#EF5350] text-[#EF5350] text-sm">
-                            {formError}
-                        </div>
-                    )}
-                    <div className="space-y-4">
-                        <Input
-                            label="Group Name"
-                            placeholder="e.g., CS101 Study Group"
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-white mb-1.5">
+                            Workspace Name *
+                        </label>
+                        <input
+                            type="text"
                             value={newGroupName}
                             onChange={(e) => setNewGroupName(e.target.value)}
-                            required
-                        />
-                        <Textarea
-                            label="Description (Optional)"
-                            placeholder="What's this group about?"
-                            value={newGroupDescription}
-                            onChange={(e) => setNewGroupDescription(e.target.value)}
-                            rows={3}
+                            placeholder="e.g., Study Group 101"
+                            className="w-full px-3 py-2 bg-[#522653] border border-[#611f69] rounded-md text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#611f69]"
                         />
                     </div>
-                    <ModalFooter>
-                        <Button variant="ghost" type="button" onClick={() => setCreateModalOpen(false)}>
-                            Cancel
-                        </Button>
-                        <Button variant="primary" type="submit" isLoading={formLoading}>
-                            Create Group
-                        </Button>
-                    </ModalFooter>
-                </form>
+                    <div>
+                        <label className="block text-sm font-medium text-white mb-1.5">
+                            Description (optional)
+                        </label>
+                        <textarea
+                            value={newGroupDescription}
+                            onChange={(e) => setNewGroupDescription(e.target.value)}
+                            placeholder="What's this workspace about?"
+                            rows={3}
+                            className="w-full px-3 py-2 bg-[#522653] border border-[#611f69] rounded-md text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#611f69] resize-none"
+                        />
+                    </div>
+                    {formError && (
+                        <p className="text-red-400 text-sm">{formError}</p>
+                    )}
+                </div>
+                <ModalFooter>
+                    <button
+                        onClick={() => {
+                            setCreateModalOpen(false);
+                            setNewGroupName('');
+                            setNewGroupDescription('');
+                            setFormError('');
+                        }}
+                        className="px-4 py-2 text-sm text-white/60 hover:text-white transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleCreateGroup}
+                        disabled={formLoading}
+                        className="px-4 py-2 bg-[#611f69] text-white text-sm font-medium rounded-md hover:bg-[#7c2d82] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                        {formLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                        {formLoading ? 'Creating...' : 'Create Workspace'}
+                    </button>
+                </ModalFooter>
             </Modal>
 
-            {/* Join Group Modal */}
+            {/* Join Workspace Modal */}
             <Modal
                 isOpen={joinModalOpen}
-                onClose={() => setJoinModalOpen(false)}
-                title="Join a Group"
-                description="Enter the invite code shared by your classmate"
+                onClose={() => {
+                    setJoinModalOpen(false);
+                    setInviteCode('');
+                    setFormError('');
+                }}
+                title="Join a workspace"
+                description="Enter the invite code shared by your team"
+                size="md"
             >
-                <form onSubmit={handleJoinGroup}>
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-white mb-1.5">
+                            Invite Code *
+                        </label>
+                        <input
+                            type="text"
+                            value={inviteCode}
+                            onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                            placeholder="e.g., ABC123"
+                            className="w-full px-3 py-2 bg-[#522653] border border-[#611f69] rounded-md text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#611f69] uppercase tracking-wider text-center text-lg font-mono"
+                        />
+                        <p className="text-xs text-white/50 mt-1.5">
+                            Ask your workspace admin for the invite code
+                        </p>
+                    </div>
                     {formError && (
-                        <div className="mb-4 p-3 bg-[#EF5350]/10 border-2 border-[#EF5350] text-[#EF5350] text-sm">
-                            {formError}
-                        </div>
+                        <p className="text-red-400 text-sm">{formError}</p>
                     )}
-                    <Input
-                        label="Invite Code"
-                        placeholder="e.g., ABC123"
-                        value={inviteCode}
-                        onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                        required
-                        className="font-mono text-center text-lg tracking-widest"
-                    />
-                    <ModalFooter>
-                        <Button variant="ghost" type="button" onClick={() => setJoinModalOpen(false)}>
-                            Cancel
-                        </Button>
-                        <Button variant="secondary" type="submit" isLoading={formLoading}>
-                            Join Group
-                        </Button>
-                    </ModalFooter>
-                </form>
+                </div>
+                <ModalFooter>
+                    <button
+                        onClick={() => {
+                            setJoinModalOpen(false);
+                            setInviteCode('');
+                            setFormError('');
+                        }}
+                        className="px-4 py-2 text-sm text-white/60 hover:text-white transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleJoinGroup}
+                        disabled={formLoading}
+                        className="px-4 py-2 bg-[#611f69] text-white text-sm font-medium rounded-md hover:bg-[#7c2d82] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                        {formLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                        {formLoading ? 'Joining...' : 'Join Workspace'}
+                    </button>
+                </ModalFooter>
             </Modal>
         </div>
     );

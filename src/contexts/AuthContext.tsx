@@ -99,21 +99,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (event, session) => {
+            (event, session) => {
                 setSession(session);
                 setUser(session?.user ?? null);
+                setLoading(false);
 
                 if (session?.user) {
-                    await fetchProfile(session.user.id);
+                    // Fetch in background - don't block
+                    fetchProfile(session.user.id).catch((error) => {
+                        console.error('Failed to fetch profile:', error);
+                        // Optionally: show a toast notification or set an error state
+                    });
                     if (!groupsFetched) {
-                        await fetchGroupsData(session.user.id);
+                        fetchGroupsData(session.user.id).catch((error) => {
+                            console.error('Failed to fetch groups:', error);
+                            // Optionally: show a toast notification or set an error state
+                        });
                     }
                 } else {
                     setProfile(null);
                     setGroups([]);
                     setGroupsFetched(false);
                 }
-                setLoading(false);
             }
         );
 

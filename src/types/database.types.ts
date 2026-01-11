@@ -40,6 +40,7 @@ export interface Database {
                     id: string;
                     name: string;
                     description: string | null;
+                    avatar_url: string | null;
                     created_by: string;
                     invite_code: string;
                     created_at: string;
@@ -49,6 +50,7 @@ export interface Database {
                     id?: string;
                     name: string;
                     description?: string | null;
+                    avatar_url?: string | null;
                     created_by: string;
                     invite_code: string;
                     created_at?: string;
@@ -58,6 +60,7 @@ export interface Database {
                     id?: string;
                     name?: string;
                     description?: string | null;
+                    avatar_url?: string | null;
                     created_by?: string;
                     invite_code?: string;
                     created_at?: string;

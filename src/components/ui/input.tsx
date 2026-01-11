@@ -1,123 +1,43 @@
-import React from 'react';
+import * as React from "react"
+import { cn } from "@/lib/utils"
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps
+    extends React.InputHTMLAttributes<HTMLInputElement> {
     label?: string;
-    error?: string;
-    helperText?: string;
     leftIcon?: React.ReactNode;
-    rightIcon?: React.ReactNode;
 }
 
-export function Input({
-    label,
-    error,
-    helperText,
-    leftIcon,
-    rightIcon,
-    className = '',
-    id,
-    ...props
-}: InputProps) {
-    const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
-
-    return (
-        <div className="w-full">
-            {label && (
-                <label
-                    htmlFor={inputId}
-                    className="block text-sm font-medium text-[#B8C9BA] mb-2"
-                >
-                    {label}
-                </label>
-            )}
-            <div className="relative">
-                {leftIcon && (
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8BA889]">
-                        {leftIcon}
-                    </div>
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+    ({ className, type, label, leftIcon, ...props }, ref) => {
+        return (
+            <div className="space-y-2">
+                {label && (
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
+                        {label}
+                        {props.required && <span className="text-red-500 ml-1">*</span>}
+                    </label>
                 )}
-                <input
-                    id={inputId}
-                    className={`
-            w-full px-4 py-3
-            bg-[#1A1F1C] text-[#E8F5E9]
-            border-4 border-[#2E3830]
-            shadow-[inset_-2px_-2px_0_rgba(0,0,0,0.3),inset_2px_2px_0_rgba(255,255,255,0.05)]
-            placeholder:text-[#8BA889]
-            transition-all duration-200
-            focus:outline-none focus:border-[#4A8C3F] focus:shadow-[0_0_15px_rgba(74,140,63,0.3)]
-            disabled:opacity-50 disabled:cursor-not-allowed
-            ${leftIcon ? 'pl-10' : ''}
-            ${rightIcon ? 'pr-10' : ''}
-            ${error ? 'border-[#EF5350] focus:border-[#EF5350] focus:shadow-[0_0_15px_rgba(239,83,80,0.3)]' : ''}
-            ${className}
-          `}
-                    {...props}
-                />
-                {rightIcon && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8BA889]">
-                        {rightIcon}
-                    </div>
-                )}
+                <div className="relative">
+                    {leftIcon && (
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5">
+                            {leftIcon}
+                        </div>
+                    )}
+                    <input
+                        type={type}
+                        className={cn(
+                            "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+                            leftIcon && "pl-10",
+                            className
+                        )}
+                        ref={ref}
+                        {...props}
+                    />
+                </div>
             </div>
-            {error && (
-                <p className="mt-2 text-sm text-[#EF5350]">{error}</p>
-            )}
-            {helperText && !error && (
-                <p className="mt-2 text-sm text-[#8BA889]">{helperText}</p>
-            )}
-        </div>
-    );
-}
+        )
+    }
+)
+Input.displayName = "Input"
 
-interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-    label?: string;
-    error?: string;
-    helperText?: string;
-}
-
-export function Textarea({
-    label,
-    error,
-    helperText,
-    className = '',
-    id,
-    ...props
-}: TextareaProps) {
-    const textareaId = id || label?.toLowerCase().replace(/\s+/g, '-');
-
-    return (
-        <div className="w-full">
-            {label && (
-                <label
-                    htmlFor={textareaId}
-                    className="block text-sm font-medium text-[#B8C9BA] mb-2"
-                >
-                    {label}
-                </label>
-            )}
-            <textarea
-                id={textareaId}
-                className={`
-          w-full px-4 py-3 min-h-[120px] resize-y
-          bg-[#1A1F1C] text-[#E8F5E9]
-          border-4 border-[#2E3830]
-          shadow-[inset_-2px_-2px_0_rgba(0,0,0,0.3),inset_2px_2px_0_rgba(255,255,255,0.05)]
-          placeholder:text-[#8BA889]
-          transition-all duration-200
-          focus:outline-none focus:border-[#4A8C3F] focus:shadow-[0_0_15px_rgba(74,140,63,0.3)]
-          disabled:opacity-50 disabled:cursor-not-allowed
-          ${error ? 'border-[#EF5350] focus:border-[#EF5350] focus:shadow-[0_0_15px_rgba(239,83,80,0.3)]' : ''}
-          ${className}
-        `}
-                {...props}
-            />
-            {error && (
-                <p className="mt-2 text-sm text-[#EF5350]">{error}</p>
-            )}
-            {helperText && !error && (
-                <p className="mt-2 text-sm text-[#8BA889]">{helperText}</p>
-            )}
-        </div>
-    );
-}
+export { Input }

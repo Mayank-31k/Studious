@@ -1,10 +1,16 @@
-'use client';
-
 /**
- * COMPLETE STUDIOUS LANDING PAGE - ADAPTED FROM PERFECT-PAGE-REPLICA
+ * COMPLETE STUDIOUS LANDING PAGE - SINGLE FILE VERSION
+ * 
+ * This file contains all the main components and structure of the Studious landing page.
+ * To use this in a new project:
+ * 
+ * 1. Setup your project with Vite + React + TypeScript
+ * 2. Install dependencies: npm install lucide-react react-router-dom
+ * 3. Copy the CSS from the accompanying UI_DESIGN_SYSTEM.md file
+ * 4. Use the components below in your App.tsx or split them into separate files
  */
+
 import React from 'react';
-import Link from 'next/link';
 import { ArrowRight, Circle, Users, FolderOpen, Shield, Zap, Check, Sparkles, Download } from 'lucide-react';
 
 // ============================================================================
@@ -13,7 +19,7 @@ import { ArrowRight, Circle, Users, FolderOpen, Shield, Zap, Check, Sparkles, Do
 
 const Navbar = () => {
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md shadow-sm">
+        <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
             <div className="container mx-auto px-6 py-4 flex items-center justify-between">
                 {/* Logo */}
                 <div className="flex items-center gap-2">
@@ -30,14 +36,10 @@ const Navbar = () => {
 
                 {/* Auth Buttons */}
                 <div className="flex items-center gap-4">
-                    <Link href="/login" className="nav-link hidden sm:block">
-                        Log in
-                    </Link>
-                    <Link href="/signup">
-                        <button className="btn-primary">
-                            Get Started
-                        </button>
-                    </Link>
+                    <button className="nav-link hidden sm:block">Log in</button>
+                    <button className="btn-primary">
+                        Get Started
+                    </button>
                 </div>
             </div>
         </nav>
@@ -67,7 +69,7 @@ const WorkspacePreview = () => {
             {/* Main Workspace Card */}
             <div className="workspace-card flex flex-col md:flex-row">
                 {/* Sidebar */}
-                <div className="w-full md:w-64 p-6 shadow-md md:shadow-[4px_0_24px_-12px_rgba(0,0,0,0.1)] z-10">
+                <div className="w-full md:w-64 p-6 border-b md:border-b-0 md:border-r border-border/50">
                     {/* Window Dots */}
                     <div className="flex items-center gap-1.5 mb-6">
                         <div className="w-3 h-3 rounded-full bg-muted"></div>
@@ -157,7 +159,7 @@ const WorkspacePreview = () => {
                     </div>
 
                     {/* Message Input */}
-                    <div className="mt-8 pt-4">
+                    <div className="mt-8 pt-4 border-t border-border/50">
                         <div className="flex items-center gap-3 px-4 py-3 bg-secondary/30 rounded-xl">
                             <p className="text-sm text-muted-foreground">Type a message...</p>
                         </div>
@@ -190,12 +192,10 @@ const Hero = () => {
 
                 {/* CTA Buttons */}
                 <div className="flex items-center justify-center gap-4 mb-16">
-                    <Link href="/signup">
-                        <button className="btn-primary">
-                            Start building
-                            <ArrowRight className="w-4 h-4" />
-                        </button>
-                    </Link>
+                    <button className="btn-primary">
+                        Start building
+                        <ArrowRight className="w-4 h-4" />
+                    </button>
                     <button className="btn-ghost">View examples</button>
                 </div>
 
@@ -361,11 +361,9 @@ const CTA = () => {
                     Experience the most refined collaboration platform for modern student teams. Free for individuals, forever.
                 </p>
                 <div className="flex items-center justify-center gap-4 flex-wrap">
-                    <Link href="/signup">
-                        <button className="btn-primary">
-                            Get started for free
-                        </button>
-                    </Link>
+                    <button className="btn-primary">
+                        Get started for free
+                    </button>
                     <button className="btn-ghost">Contact sales</button>
                 </div>
             </div>
@@ -379,7 +377,7 @@ const CTA = () => {
 
 const Footer = () => {
     return (
-        <footer className="py-8 px-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <footer className="py-8 px-6 border-t border-border/50">
             <div className="container mx-auto flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">Static route</p>
                 <p className="text-sm text-muted-foreground">© 2024 Studious</p>
@@ -389,10 +387,10 @@ const Footer = () => {
 };
 
 // ============================================================================
-// MAIN PAGE EXPORT
+// MAIN INDEX PAGE
 // ============================================================================
 
-export default function LandingPage() {
+const Index = () => {
     return (
         <div className="min-h-screen bg-background">
             <Navbar />
@@ -405,4 +403,43 @@ export default function LandingPage() {
             <Footer />
         </div>
     );
-}
+};
+
+// ============================================================================
+// APP COMPONENT (Main Entry Point)
+// ============================================================================
+
+const App = () => {
+    return <Index />;
+};
+
+export default App;
+
+/**
+ * USAGE INSTRUCTIONS:
+ * 
+ * 1. Install required dependencies:
+ *    npm install lucide-react
+ * 
+ * 2. Copy the CSS from UI_DESIGN_SYSTEM.md to your index.css or globals.css
+ * 
+ * 3. Make sure your tailwind.config.ts matches the configuration in UI_DESIGN_SYSTEM.md
+ * 
+ * 4. Import and use this App component in your main.tsx:
+ *    import App from './App'
+ *    ReactDOM.createRoot(document.getElementById('root')!).render(<App />)
+ * 
+ * 5. To split into separate files, simply copy each component section into its own file
+ *    and export it as a named or default export.
+ * 
+ * COMPONENT BREAKDOWN:
+ * - Navbar: Fixed header with logo, navigation links, and auth buttons
+ * - Hero: Main hero section with title, CTA buttons, workspace preview, and trust badges
+ * - WorkspacePreview: Interactive workspace mockup with sidebar and chat interface
+ * - Features: 4-column grid of feature cards with icons
+ * - Messaging: Two-column section with benefits list and chat preview
+ * - CTA: Call-to-action section with centered content
+ * - Footer: Simple footer with copyright
+ * - Index: Main page layout combining all sections
+ * - App: Root component
+ */

@@ -59,21 +59,21 @@ export function Modal({
             <div
                 className={`
           relative w-full ${sizes[size]} mx-4
-          bg-[#1A1F1C]
-          border-4 border-[#4A8C3F]
-          shadow-[0_0_40px_rgba(74,140,63,0.4),inset_-4px_-4px_0_#1E3D1A,inset_4px_4px_0_#4A8C3F]
-          animate-slide-up
+          bg-[#3F0E40]
+          border-4 border-[#611f69]
+          shadow-[0_0_40px_rgba(97,31,105,0.4),inset_-4px_-4px_0_#350D36,inset_4px_4px_0_#611f69]
+          animate-slide-up rounded-lg
         `}
             >
                 {/* Header */}
                 {(title || showCloseButton) && (
-                    <div className="flex items-start justify-between p-5 border-b-4 border-[#2E3830]">
+                    <div className="flex items-start justify-between p-5 border-b-2 border-[#522653]">
                         <div>
                             {title && (
-                                <h2 className="font-pixel text-sm text-[#E8F5E9]">{title}</h2>
+                                <h2 className="text-lg font-semibold text-white">{title}</h2>
                             )}
                             {description && (
-                                <p className="mt-2 text-sm text-[#8BA889]">{description}</p>
+                                <p className="mt-2 text-sm text-white/70">{description}</p>
                             )}
                         </div>
                         {showCloseButton && (
@@ -81,9 +81,9 @@ export function Modal({
                                 onClick={onClose}
                                 className="
                   p-2 -mt-1 -mr-2
-                  text-[#8BA889] hover:text-[#E8F5E9]
-                  hover:bg-[#232A26]
-                  transition-colors duration-200
+                  text-white/60 hover:text-white
+                  hover:bg-white/10
+                  transition-colors duration-200 rounded-md
                 "
                             >
                                 <svg
@@ -121,7 +121,7 @@ interface ModalFooterProps {
 
 export function ModalFooter({ children, className = '' }: ModalFooterProps) {
     return (
-        <div className={`flex items-center justify-end gap-3 mt-5 pt-5 border-t-2 border-[#2E3830] ${className}`}>
+        <div className={`flex items-center justify-end gap-3 mt-5 pt-5 border-t-2 border-[#522653] ${className}`}>
             {children}
         </div>
     );
