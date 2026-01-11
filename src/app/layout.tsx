@@ -14,11 +14,31 @@ export const metadata: Metadata = {
   title: "Studious - College Collaboration Platform",
   description: "Connect, collaborate, and share with your classmates. A modern platform for college students combining classroom management with real-time messaging.",
   keywords: ["college", "collaboration", "classroom", "messaging", "students", "study groups"],
-  authors: [{ name: "Studious Team" }],
+  authors: [{ name: "Mayank" }],
+  metadataBase: new URL('https://studiousplus.vercel.app'),
   openGraph: {
     title: "Studious - College Collaboration Platform",
-    description: "Connect, collaborate, and share with your classmates.",
+    description: "Connect. Collaborate. Learn. A modern platform for college students.",
     type: "website",
+    siteName: "Studious",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Studious - Connect. Collaborate. Learn.",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Studious - College Collaboration Platform",
+    description: "Connect. Collaborate. Learn.",
+    images: ["/og-image.png"],
+  },
+  icons: {
+    icon: "/favicon.png",
+    apple: "/apple-touch-icon.png",
   },
 };
 

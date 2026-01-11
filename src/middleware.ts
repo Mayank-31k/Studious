@@ -8,6 +8,17 @@ const PROTECTED_ROUTES = ['/dashboard', '/groups', '/profile', '/ai-chat'];
 const AUTH_ROUTES = ['/login', '/signup'];
 
 export async function middleware(request: NextRequest) {
+    const { pathname, searchParams } = request.nextUrl;
+
+    // Handle OAuth callback codes at root URL - redirect to /auth/callback
+    // This fixes the issue where OAuth providers redirect to /?code=xxx instead of /auth/callback
+    if (pathname === '/' && searchParams.has('code')) {
+        const code = searchParams.get('code');
+        const redirectUrl = new URL('/auth/callback', request.url);
+        redirectUrl.searchParams.set('code', code!);
+        return NextResponse.redirect(redirectUrl);
+    }
+
     let response = NextResponse.next({
         request: {
             headers: request.headers,
@@ -42,7 +53,6 @@ export async function middleware(request: NextRequest) {
     // Refresh session if expired
     const { data: { user } } = await supabase.auth.getUser();
 
-    const pathname = request.nextUrl.pathname;
 
     // Check if accessing a protected route without authentication
     const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route));
